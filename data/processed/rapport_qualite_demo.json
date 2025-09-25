@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-09-25T17:42:39.187683",
+  "donnees_brutes": 4,
+  "donnees_nettoyees": 4,
+  "donnees_dedupliquees": 3,
+  "donnees_anonymisees": 3,
+  "donnees_finales": 3,
+  "doublons_supprimes": 1,
+  "taux_deduplication": 25.0,
+  "statistiques_globales": {
+    "total_mots": 19,
+    "total_caracteres": 112,
+    "moyenne_mots": 6.33,
+    "moyenne_caracteres": 37.33
+  },
+  "sources": {
+    "twitter": {
+      "count": 1,
+      "total_mots": 5,
+      "total_caracteres": 35
+    },
+    "youtube": {
+      "count": 1,
+      "total_mots": 6,
+      "total_caracteres": 36
+    },
+    "instagram": {
+      "count": 1,
+      "total_mots": 8,
+      "total_caracteres": 41
+    }
+  }
+}
