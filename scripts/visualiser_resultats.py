@@ -1,154 +1,294 @@
 #!/usr/bin/env python3
 """
-Visualisation des résultats - Semantic Pulse X
-Affichage concret et visuel des données traitées
+Visualisation des résultats du data engineering - Semantic Pulse X
+Montre toutes les étapes du traitement des données avec des détails concrets
 """
 
+import os
 import json
-from pathlib import Path
+import pandas as pd
+import logging
 from datetime import datetime
+from pathlib import Path
 
-def visualiser_resultats():
-    """Visualise les résultats de manière concrète"""
-    print("📊 VISUALISATION DES RÉSULTATS - DATA ENGINEERING")
-    print("=" * 70)
+# Configuration du logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def visualiser_etapes_data_engineering():
+    """Visualise toutes les étapes du data engineering avec des détails concrets."""
+    logger.info("🔍 VISUALISATION COMPLÈTE DU DATA ENGINEERING")
+    logger.info("=" * 80)
     
-    # Charger les données traitées
-    data_file = Path("data/processed/donnees_traitees_demo.json")
-    rapport_file = Path("data/processed/rapport_qualite_demo.json")
+    # Étape 1: Sources de données
+    logger.info("\n📊 ÉTAPE 1: SOURCES DE DONNÉES")
+    logger.info("-" * 50)
     
-    if not data_file.exists():
-        print("❌ Fichier de données non trouvé. Lancez d'abord demo_data_engineering_simple.py")
-        return
+    sources_dir = "data/raw"
+    if os.path.exists(sources_dir):
+        for root, dirs, files in os.walk(sources_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path) / (1024 * 1024)  # MB
+                logger.info(f"📄 {file_path}")
+                logger.info(f"   💾 Taille: {file_size:.3f} MB")
+                
+                # Analyser le contenu si c'est un CSV
+                if file.endswith('.csv'):
+                    try:
+                        df = pd.read_csv(file_path, nrows=5)  # Lire seulement les 5 premières lignes
+                        logger.info(f"   📊 Colonnes: {list(df.columns)}")
+                        logger.info(f"   📈 Échantillon de données:")
+                        for i, row in df.iterrows():
+                            logger.info(f"      Ligne {i+1}: {dict(row)}")
+                    except Exception as e:
+                        logger.warning(f"   ⚠️ Impossible de lire le CSV: {e}")
     
-    with open(data_file, 'r', encoding='utf-8') as f:
-        donnees = json.load(f)
+    # Étape 2: Données traitées
+    logger.info("\n🔄 ÉTAPE 2: DONNÉES TRAITÉES")
+    logger.info("-" * 50)
     
-    with open(rapport_file, 'r', encoding='utf-8') as f:
-        rapport = json.load(f)
+    processed_dir = "data/processed"
+    if os.path.exists(processed_dir):
+        for root, dirs, files in os.walk(processed_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path) / (1024 * 1024)  # MB
+                logger.info(f"📄 {file_path}")
+                logger.info(f"   💾 Taille: {file_size:.3f} MB")
+                
+                # Analyser le contenu selon le type
+                if file.endswith('.parquet'):
+                    try:
+                        df = pd.read_parquet(file_path)
+                        logger.info(f"   📊 Lignes: {len(df):,}")
+                        logger.info(f"   📋 Colonnes: {len(df.columns)}")
+                        logger.info(f"   🏷️ Colonnes: {list(df.columns)}")
+                        
+                        # Statistiques de base
+                        logger.info(f"   📈 Statistiques:")
+                        for col in df.columns:
+                            if df[col].dtype in ['int64', 'float64']:
+                                logger.info(f"      {col}: min={df[col].min()}, max={df[col].max()}, moyenne={df[col].mean():.2f}")
+                            else:
+                                unique_count = df[col].nunique()
+                                logger.info(f"      {col}: {unique_count} valeurs uniques")
+                    except Exception as e:
+                        logger.warning(f"   ⚠️ Impossible de lire le Parquet: {e}")
+                
+                elif file.endswith('.json'):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        logger.info(f"   📊 Type: {type(data).__name__}")
+                        if isinstance(data, list):
+                            logger.info(f"   📈 Éléments: {len(data)}")
+                            if data:
+                                logger.info(f"   🏷️ Clés du premier élément: {list(data[0].keys()) if isinstance(data[0], dict) else 'N/A'}")
+                        elif isinstance(data, dict):
+                            logger.info(f"   🏷️ Clés: {list(data.keys())}")
+                    except Exception as e:
+                        logger.warning(f"   ⚠️ Impossible de lire le JSON: {e}")
     
-    # 1. AVANT/APRÈS TRANSFORMATION
-    print("\n🔄 TRANSFORMATION DES DONNÉES")
-    print("=" * 50)
+    # Étape 3: Analyse de qualité
+    logger.info("\n🔍 ÉTAPE 3: ANALYSE DE QUALITÉ")
+    logger.info("-" * 50)
     
-    print("📥 DONNÉES BRUTES (exemples):")
-    print("   • 'J'ADORE cette émission !!! C'est GÉNIAL !!!'")
-    print("   • 'Cette émission est NULle, je déteste !!!'")
-    print("   • 'Super épisode, j'ai hâte de voir la suite !'")
-    print("   • 'J'ADORE cette émission !!! C'est GÉNIAL !!!' (DOUBLON)")
+    # Analyser les fichiers Parquet
+    parquet_files = []
+    for root, dirs, files in os.walk(processed_dir):
+        for file in files:
+            if file.endswith('.parquet'):
+                parquet_files.append(os.path.join(root, file))
     
-    print("\n📤 DONNÉES TRAITÉES:")
-    for i, data in enumerate(donnees, 1):
-        print(f"   {i}. Texte: '{data['contenu']}'")
-        print(f"      Utilisateur: {data['utilisateur_anonyme']} (anonymisé)")
-        print(f"      Source: {data['source_type'].upper()}")
-        print(f"      Métriques: {data['nombre_mots']} mots, {data['longueur_caracteres']} caractères")
-        print(f"      Densité: {data['densite_mots']}%")
-        print()
+    total_rows = 0
+    total_size = 0
     
-    # 2. MÉTRIQUES DE QUALITÉ
-    print("📈 MÉTRIQUES DE QUALITÉ")
-    print("=" * 50)
+    for parquet_file in parquet_files:
+        try:
+            df = pd.read_parquet(parquet_file)
+            file_size = os.path.getsize(parquet_file) / (1024 * 1024)
+            
+            logger.info(f"📊 {os.path.basename(parquet_file)}:")
+            logger.info(f"   📈 Lignes: {len(df):,}")
+            logger.info(f"   💾 Taille: {file_size:.3f} MB")
+            
+            # Qualité des données
+            missing_data = df.isnull().sum()
+            if missing_data.sum() > 0:
+                logger.info(f"   ⚠️ Données manquantes:")
+                for col, missing in missing_data.items():
+                    if missing > 0:
+                        logger.info(f"      {col}: {missing} ({missing/len(df)*100:.1f}%)")
+            else:
+                logger.info(f"   ✅ Aucune donnée manquante")
+            
+            # Types de données
+            logger.info(f"   🏷️ Types de données:")
+            for col, dtype in df.dtypes.items():
+                logger.info(f"      {col}: {dtype}")
+            
+            total_rows += len(df)
+            total_size += file_size
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur analyse {parquet_file}: {e}")
     
-    print(f"📊 STATISTIQUES GLOBALES:")
-    print(f"   • Données brutes: {rapport['donnees_brutes']}")
-    print(f"   • Données finales: {rapport['donnees_finales']}")
-    print(f"   • Doublons supprimés: {rapport['doublons_supprimes']}")
-    print(f"   • Taux de dédoublonnage: {rapport['taux_deduplication']}%")
-    print()
+    logger.info(f"\n📊 RÉSUMÉ GLOBAL:")
+    logger.info(f"   📈 Total lignes: {total_rows:,}")
+    logger.info(f"   💾 Taille totale: {total_size:.3f} MB")
     
-    stats = rapport['statistiques_globales']
-    print(f"📝 CONTENU:")
-    print(f"   • Total mots: {stats['total_mots']}")
-    print(f"   • Total caractères: {stats['total_caracteres']}")
-    print(f"   • Moyenne mots/donnée: {stats['moyenne_mots']}")
-    print(f"   • Moyenne caractères/donnée: {stats['moyenne_caracteres']}")
-    print()
+    # Étape 4: Métriques de performance
+    logger.info("\n⚡ ÉTAPE 4: MÉTRIQUES DE PERFORMANCE")
+    logger.info("-" * 50)
     
-    # 3. RÉPARTITION PAR SOURCE
-    print("🌐 RÉPARTITION PAR SOURCE")
-    print("=" * 50)
+    # Calculer la compression
+    raw_size = 0
+    for root, dirs, files in os.walk(sources_dir):
+        for file in files:
+            if file.endswith('.csv'):
+                raw_size += os.path.getsize(os.path.join(root, file)) / (1024 * 1024)
     
-    for source, stats in rapport['sources'].items():
-        print(f"📱 {source.upper()}:")
-        print(f"   • Nombre de données: {stats['count']}")
-        print(f"   • Total mots: {stats['total_mots']}")
-        print(f"   • Total caractères: {stats['total_caracteres']}")
-        print(f"   • Moyenne mots: {stats['total_mots']/stats['count']:.1f}")
-        print(f"   • Moyenne caractères: {stats['total_caracteres']/stats['count']:.1f}")
-        print()
+    if raw_size > 0:
+        compression_ratio = (1 - (total_size / raw_size)) * 100
+        logger.info(f"🗜️ Compression CSV → Parquet: {compression_ratio:.1f}%")
+        logger.info(f"📊 Taille originale CSV: {raw_size:.3f} MB")
+        logger.info(f"📊 Taille compressée Parquet: {total_size:.3f} MB")
+        logger.info(f"💰 Économie d'espace: {raw_size - total_size:.3f} MB")
     
-    # 4. CONFORMITÉ RGPD
-    print("🔒 CONFORMITÉ RGPD")
-    print("=" * 50)
+    # Étape 5: Traçabilité
+    logger.info("\n🔍 ÉTAPE 5: TRAÇABILITÉ")
+    logger.info("-" * 50)
     
-    print("✅ ANONYMIZATION:")
-    print("   • Identifiants utilisateurs → Hachage SHA-256")
-    print("   • Emails → Supprimés")
-    print("   • Données personnelles → Aucune conservée")
-    print()
+    # Vérifier les logs et rapports
+    log_files = []
+    for root, dirs, files in os.walk(processed_dir):
+        for file in files:
+            if 'report' in file.lower() or 'log' in file.lower():
+                log_files.append(os.path.join(root, file))
     
-    print("🔍 EXEMPLES D'ANONYMIZATION:")
-    for data in donnees[:2]:  # Afficher 2 exemples
-        print(f"   • Utilisateur original → {data['utilisateur_anonyme']}")
-        print(f"   • Hash du contenu: {data['contenu_hash'][:20]}...")
-    print()
+    for log_file in log_files:
+        logger.info(f"📋 {os.path.basename(log_file)}")
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            logger.info(f"   📄 Taille: {len(content)} caractères")
+            logger.info(f"   📅 Dernière modification: {datetime.fromtimestamp(os.path.getmtime(log_file))}")
+        except Exception as e:
+            logger.warning(f"   ⚠️ Impossible de lire: {e}")
     
-    # 5. PIPELINE DE TRAITEMENT
-    print("⚙️ PIPELINE DE TRAITEMENT")
-    print("=" * 50)
+    logger.info("\n" + "=" * 80)
+    logger.info("✅ VISUALISATION COMPLÈTE TERMINÉE")
+    logger.info("=" * 80)
+
+def analyser_pipeline_etl():
+    """Analyse le pipeline ETL en détail."""
+    logger.info("\n🔄 ANALYSE DÉTAILLÉE DU PIPELINE ETL")
+    logger.info("=" * 60)
     
-    etapes = [
-        ("Collecte", rapport['donnees_brutes'], "Données brutes collectées"),
-        ("Nettoyage", rapport['donnees_nettoyees'], "Caractères spéciaux supprimés, casse normalisée"),
-        ("Dédoublonnage", rapport['donnees_dedupliquees'], f"{rapport['doublons_supprimes']} doublons supprimés"),
-        ("Anonymisation", rapport['donnees_anonymisees'], "RGPD appliqué, données personnelles supprimées"),
-        ("Homogénéisation", rapport['donnees_finales'], "Formats standardisés, métriques calculées")
+    # Vérifier les étapes du pipeline
+    pipeline_steps = [
+        ("Extraction", "data/raw"),
+        ("Transformation", "data/processed"),
+        ("Chargement", "data/processed/bigdata")
     ]
     
-    for i, (etape, count, description) in enumerate(etapes, 1):
-        print(f"   {i}. {etape.upper()}: {count} données")
-        print(f"      → {description}")
-        print()
+    for step_name, step_dir in pipeline_steps:
+        logger.info(f"\n📊 {step_name.upper()}:")
+        logger.info("-" * 30)
+        
+        if os.path.exists(step_dir):
+            files = []
+            total_size = 0
+            
+            for root, dirs, filenames in os.walk(step_dir):
+                for filename in filenames:
+                    file_path = os.path.join(root, filename)
+                    file_size = os.path.getsize(file_path) / (1024 * 1024)
+                    files.append((filename, file_size))
+                    total_size += file_size
+            
+            logger.info(f"   📁 Fichiers: {len(files)}")
+            logger.info(f"   💾 Taille totale: {total_size:.3f} MB")
+            
+            for filename, size in files:
+                logger.info(f"      📄 {filename}: {size:.3f} MB")
+        else:
+            logger.warning(f"   ⚠️ Répertoire {step_dir} non trouvé")
+
+def generer_rapport_complet():
+    """Génère un rapport complet du data engineering."""
+    logger.info("\n📋 GÉNÉRATION DU RAPPORT COMPLET")
+    logger.info("=" * 50)
     
-    # 6. FICHIERS GÉNÉRÉS
-    print("💾 FICHIERS GÉNÉRÉS")
-    print("=" * 50)
+    rapport = {
+        "timestamp": datetime.now().isoformat(),
+        "data_engineering_summary": {
+            "sources": [],
+            "processed_files": [],
+            "quality_metrics": {},
+            "performance_metrics": {}
+        }
+    }
     
-    print(f"📄 Données traitées: {data_file}")
-    print(f"   • Taille: {data_file.stat().st_size} octets")
-    print(f"   • Format: JSON structuré")
-    print(f"   • Contenu: {len(donnees)} enregistrements")
-    print()
+    # Analyser les sources
+    sources_dir = "data/raw"
+    if os.path.exists(sources_dir):
+        for root, dirs, files in os.walk(sources_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path) / (1024 * 1024)
+                rapport["data_engineering_summary"]["sources"].append({
+                    "file": file_path,
+                    "size_mb": round(file_size, 3)
+                })
     
-    print(f"📊 Rapport de qualité: {rapport_file}")
-    print(f"   • Taille: {rapport_file.stat().st_size} octets")
-    print(f"   • Format: JSON métadonnées")
-    print(f"   • Contenu: Statistiques et métriques")
-    print()
+    # Analyser les fichiers traités
+    processed_dir = "data/processed"
+    if os.path.exists(processed_dir):
+        for root, dirs, files in os.walk(processed_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path) / (1024 * 1024)
+                rapport["data_engineering_summary"]["processed_files"].append({
+                    "file": file_path,
+                    "size_mb": round(file_size, 3)
+                })
     
-    # 7. RÉSUMÉ EXÉCUTIF
-    print("🎯 RÉSUMÉ FINAL")
-    print("=" * 50)
+    # Sauvegarder le rapport
+    rapport_file = "data/processed/rapport_data_engineering_complet.json"
+    os.makedirs(os.path.dirname(rapport_file), exist_ok=True)
     
-    print("✅ COMPÉTENCES DÉMONTRÉES:")
-    print("   • Nettoyage de données (caractères, casse, formats)")
-    print("   • Détection et suppression de doublons")
-    print("   • Anonymisation RGPD (hachage, pseudonymisation)")
-    print("   • Homogénéisation multi-sources")
-    print("   • Calcul de métriques de qualité")
-    print("   • Génération de rapports structurés")
-    print()
+    with open(rapport_file, 'w', encoding='utf-8') as f:
+        json.dump(rapport, f, ensure_ascii=False, indent=2)
     
-    print("📊 RÉSULTATS CONCRETS:")
-    print(f"   • {rapport['taux_deduplication']}% de doublons détectés et supprimés")
-    print(f"   • 100% des données personnelles anonymisées")
-    print(f"   • {len(donnees)} enregistrements finaux prêts pour l'analyse")
-    print(f"   • {stats['total_mots']} mots traités et analysés")
-    print()
+    logger.info(f"💾 Rapport sauvegardé: {rapport_file}")
+    return rapport
+
+def main():
+    """Fonction principale."""
+    logger.info("🔍 VISUALISATION DES RÉSULTATS - DATA ENGINEERING")
+    logger.info("=" * 80)
+    logger.info("📊 Analyse complète de toutes les étapes du traitement des données")
+    logger.info("🔍 Détails concrets pour démonstration")
+    logger.info("=" * 80)
     
-    print("🎉 CONCLUSION: Pipeline de data engineering complet et conforme RGPD !")
-    print("=" * 70)
+    # Visualiser toutes les étapes
+    visualiser_etapes_data_engineering()
+    
+    # Analyser le pipeline ETL
+    analyser_pipeline_etl()
+    
+    # Générer le rapport complet
+    rapport = generer_rapport_complet()
+    
+    logger.info("\n" + "=" * 80)
+    logger.info("🎉 VISUALISATION TERMINÉE")
+    logger.info("=" * 80)
+    logger.info("📊 Toutes les étapes du data engineering ont été analysées")
+    logger.info("🔍 Détails concrets disponibles pour démonstration")
+    logger.info("📋 Rapport complet généré")
+    logger.info("=" * 80)
 
 if __name__ == "__main__":
-    visualiser_resultats()
+    main()

@@ -50,6 +50,33 @@ app/
 
 ## 🚀 Démarrage rapide
 
+### Phase 1 - Big Data (✅ Validée)
+```bash
+# 1. Démarrer les services Big Data
+docker-compose up -d minio postgres
+
+# 2. Convertir les données CSV vers Parquet
+python scripts/convert_csv_to_parquet.py
+
+# 3. Upload vers MinIO Data Lake
+python scripts/upload_to_minio.py
+
+# 4. Test complet Phase 1
+python scripts/test_phase1_complete.py
+```
+
+### Phase 2 - APIs externes (🔄 En cours)
+```bash
+# 1. Configuration des APIs
+python scripts/setup_external_apis.py
+
+# 2. Collecte des données
+python scripts/collect_external_data.py
+
+# 3. Test Phase 2
+python scripts/test_phase2_complete.py
+```
+
 ### Installation locale
 ```bash
 # 1. Cloner le projet
@@ -88,8 +115,8 @@ python scripts/generate_wordcloud_demo.py
 # Voir les résultats de data engineering
 python scripts/visualiser_resultats.py
 
-# Audit complet du projet
-python scripts/audit_projet.py
+# Test complet Phase 1
+python scripts/test_phase1_complete.py
 ```
 
 ## 📊 Monitoring

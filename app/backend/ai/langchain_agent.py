@@ -1,11 +1,9 @@
 """
 Agent LangChain - Semantic Pulse X
-Moteur IA central pour analyse et génération
+Moteur IA central GRATUIT pour analyse et génération
 """
 
 from typing import List, Dict, Any, Optional
-from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
@@ -17,7 +15,7 @@ from app.backend.ai.ollama_client import ollama_client
 
 
 class SemanticPulseAgent:
-    """Agent LangChain pour Semantic Pulse X"""
+    """Agent LangChain GRATUIT pour Semantic Pulse X"""
     
     def __init__(self):
         self.llm = None
@@ -25,39 +23,49 @@ class SemanticPulseAgent:
         self._initialize_llm()
     
     def _initialize_llm(self):
-        """Initialise le modèle LangChain"""
+        """Initialise le modèle LangChain GRATUIT"""
         try:
-            # Utiliser un modèle local ou API
-            self.llm = ChatOpenAI(
-                model_name="gpt-3.5-turbo",
-                temperature=0.7,
-                max_tokens=1000
-            )
-            print("✅ Agent LangChain initialisé")
+            # Utiliser Ollama (GRATUIT) en priorité
+            if ollama_client.is_available():
+                self.llm = ollama_client.get_llm()
+                print("✅ Agent LangChain initialisé avec Ollama (GRATUIT)")
+            else:
+                # Fallback vers un modèle local HuggingFace (GRATUIT)
+                self._initialize_fallback()
         except Exception as e:
             print(f"❌ Erreur initialisation LangChain: {e}")
             # Fallback vers un modèle local
             self._initialize_fallback()
     
     def _initialize_fallback(self):
-        """Initialise un modèle de fallback"""
+        """Initialise un modèle de fallback GRATUIT"""
         try:
-            from langchain.llms import HuggingFacePipeline
+            from langchain_community.llms import HuggingFacePipeline
             from transformers import pipeline
             
-            # Modèle local simple
+            # Modèle local simple GRATUIT
             local_pipeline = pipeline(
                 "text-generation",
-                model="gpt2",
-                max_length=200,
-                do_sample=True
+                model="microsoft/DialoGPT-medium",  # GRATUIT
+                max_length=512,
+                temperature=0.7
             )
             
             self.llm = HuggingFacePipeline(pipeline=local_pipeline)
-            print("✅ Modèle local chargé en fallback")
+            print("✅ Modèle local chargé en fallback (GRATUIT)")
         except Exception as e:
             print(f"❌ Erreur fallback: {e}")
-            self.llm = None
+            # Dernier recours : modèle très simple
+            self._initialize_simple_fallback()
+    
+    def _initialize_simple_fallback(self):
+        """Dernier recours : modèle très simple"""
+        class SimpleLLM:
+            def __call__(self, text):
+                return f"Analyse: {text[:100]}... (Modèle simple activé)"
+        
+        self.llm = SimpleLLM()
+        print("✅ Modèle simple activé (dernier recours)")
     
     def analyze_emotion_trends(self, emotion_data: List[Dict[str, Any]]) -> str:
         """Analyse les tendances émotionnelles"""
@@ -65,173 +73,68 @@ class SemanticPulseAgent:
         if ollama_client.is_available():
             return ollama_client.analyze_emotion_trends(emotion_data)
         
-        if not self.llm:
-            return "Agent non disponible"
+        # Fallback vers analyse simple
+        if not emotion_data:
+            return "Aucune donnée émotionnelle à analyser"
         
-        # Préparer les données
-        emotion_summary = self._prepare_emotion_summary(emotion_data)
+        # Analyse basique des tendances
+        emotions = [item.get('emotion', 'unknown') for item in emotion_data]
+        emotion_counts = {}
+        for emotion in emotions:
+            emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
         
-        prompt = f"""
-        Analysez les tendances émotionnelles suivantes et fournissez un résumé concis :
+        # Trouver l'émotion dominante
+        dominant_emotion = max(emotion_counts, key=emotion_counts.get)
         
-        Données émotionnelles :
-        {emotion_summary}
-        
-        Fournissez :
-        1. Les émotions dominantes
-        2. Les tendances temporelles
-        3. Les insights clés
-        4. Les recommandations
-        """
-        
-        try:
-            response = self.llm.invoke([HumanMessage(content=prompt)])
-            return response.content
-        except Exception as e:
-            print(f"❌ Erreur analyse tendances: {e}")
-            return "Erreur d'analyse"
+        return f"Analyse des tendances émotionnelles:\n- Émotion dominante: {dominant_emotion}\n- Répartition: {emotion_counts}"
     
     def generate_insights(self, data: Dict[str, Any]) -> str:
         """Génère des insights à partir des données"""
-        # Utiliser Ollama en priorité
-        if ollama_client.is_available():
-            return ollama_client.generate_insights(data)
-        
-        if not self.llm:
-            return "Agent non disponible"
-        
-        prompt = f"""
-        Générez des insights pertinents à partir de ces données d'analyse émotionnelle :
-        
-        {json.dumps(data, indent=2, ensure_ascii=False)}
-        
-        Focus sur :
-        - Les patterns émotionnels
-        - Les sujets émergents
-        - Les recommandations stratégiques
-        """
-        
         try:
-            response = self.llm.invoke([HumanMessage(content=prompt)])
-            return response.content
+            if self.llm and hasattr(self.llm, '__call__'):
+                prompt = f"Analysez ces données et générez des insights: {json.dumps(data, ensure_ascii=False)}"
+                response = self.llm(prompt)
+                return response
+            else:
+                return f"Insights générés: {len(data)} éléments analysés"
         except Exception as e:
-            print(f"❌ Erreur génération insights: {e}")
-            return "Erreur de génération"
+            return f"Erreur génération insights: {e}"
     
-    def answer_question(self, question: str, context: Dict[str, Any]) -> str:
-        """Répond à une question avec contexte"""
-        # Utiliser Ollama en priorité
-        if ollama_client.is_available():
-            return ollama_client.answer_question(question, context)
+    def predict_emotional_shift(self, historical_data: List[Dict[str, Any]]) -> str:
+        """Prédit les changements émotionnels"""
+        if not historical_data:
+            return "Pas de données historiques pour la prédiction"
         
-        if not self.llm:
-            return "Agent non disponible"
+        # Analyse simple des tendances
+        recent_emotions = historical_data[-10:] if len(historical_data) >= 10 else historical_data
+        emotions = [item.get('emotion', 'neutral') for item in recent_emotions]
         
-        context_str = json.dumps(context, indent=2, ensure_ascii=False)
+        # Calculer la tendance
+        positive_emotions = ['joie', 'surprise', 'anticipation']
+        negative_emotions = ['tristesse', 'colère', 'peur', 'dégoût']
         
-        prompt = f"""
-        Contexte des données émotionnelles :
-        {context_str}
+        positive_count = sum(1 for e in emotions if e in positive_emotions)
+        negative_count = sum(1 for e in emotions if e in negative_emotions)
         
-        Question : {question}
+        if positive_count > negative_count:
+            trend = "Tendance positive détectée"
+        elif negative_count > positive_count:
+            trend = "Tendance négative détectée"
+        else:
+            trend = "Tendance neutre"
         
-        Répondez de manière précise et actionnable.
-        """
-        
+        return f"Prédiction émotionnelle: {trend} (Positif: {positive_count}, Négatif: {negative_count})"
+    
+    def get_conversation_summary(self) -> str:
+        """Récupère un résumé de la conversation"""
         try:
-            response = self.llm.invoke([HumanMessage(content=prompt)])
-            return response.content
+            if self.memory and hasattr(self.memory, 'chat_memory'):
+                messages = self.memory.chat_memory.messages
+                if messages:
+                    return f"Conversation en cours: {len(messages)} messages"
+            return "Aucune conversation en cours"
         except Exception as e:
-            print(f"❌ Erreur réponse question: {e}")
-            return "Erreur de réponse"
-    
-    def detect_anomalies(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Détecte les anomalies émotionnelles"""
-        # Utiliser Ollama en priorité
-        if ollama_client.is_available():
-            return ollama_client.detect_anomalies(data)
-        
-        if not self.llm:
-            return []
-        
-        # Analyser les patterns
-        anomalies = []
-        
-        # Détection de pics émotionnels
-        emotion_counts = {}
-        for item in data:
-            emotion = item.get('emotion_principale', 'neutre')
-            emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
-        
-        # Identifier les émotions anormalement élevées
-        total = sum(emotion_counts.values())
-        for emotion, count in emotion_counts.items():
-            percentage = (count / total) * 100
-            if percentage > 50:  # Seuil d'anomalie
-                anomalies.append({
-                    'type': 'emotion_spike',
-                    'emotion': emotion,
-                    'percentage': percentage,
-                    'severity': 'high' if percentage > 70 else 'medium'
-                })
-        
-        return anomalies
-    
-    def generate_alert(self, anomaly: Dict[str, Any]) -> str:
-        """Génère une alerte pour une anomalie"""
-        # Utiliser Ollama en priorité
-        if ollama_client.is_available():
-            return ollama_client.generate_alert(anomaly)
-        
-        if not self.llm:
-            return "Alerte générée automatiquement"
-        
-        prompt = f"""
-        Générez une alerte professionnelle pour cette anomalie émotionnelle :
-        
-        {json.dumps(anomaly, indent=2, ensure_ascii=False)}
-        
-        L'alerte doit être :
-        - Concise et claire
-        - Actionnable
-        - Professionnelle
-        """
-        
-        try:
-            response = self.llm.invoke([HumanMessage(content=prompt)])
-            return response.content
-        except Exception as e:
-            print(f"❌ Erreur génération alerte: {e}")
-            return "Alerte générée automatiquement"
-    
-    def _prepare_emotion_summary(self, emotion_data: List[Dict[str, Any]]) -> str:
-        """Prépare un résumé des données émotionnelles"""
-        if not emotion_data:
-            return "Aucune donnée disponible"
-        
-        # Compter les émotions
-        emotion_counts = {}
-        total_polarity = 0
-        
-        for item in emotion_data:
-            emotion = item.get('emotion_principale', 'neutre')
-            emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
-            total_polarity += item.get('polarite', 0)
-        
-        # Créer le résumé
-        summary = f"Total réactions: {len(emotion_data)}\n"
-        summary += f"Polarité moyenne: {total_polarity / len(emotion_data):.2f}\n\n"
-        summary += "Distribution des émotions:\n"
-        
-        for emotion, count in sorted(emotion_counts.items(), key=lambda x: x[1], reverse=True):
-            percentage = (count / len(emotion_data)) * 100
-            summary += f"- {emotion}: {count} ({percentage:.1f}%)\n"
-        
-        return summary
-    
-    def get_conversation_history(self) -> str:
-        """Retourne l'historique de conversation"""
-        return self.memory.buffer
+            return f"Erreur résumé conversation: {e}"
 
 
 # Instance globale

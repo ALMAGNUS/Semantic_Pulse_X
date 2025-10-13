@@ -4,9 +4,6 @@ Gestion des workflows et tâches automatisées
 """
 
 from prefect import flow, task, get_run_logger
-from prefect.task_runners import SequentialTaskRunner
-from prefect.blocks.system import Secret
-from prefect.deployments import Deployment
 from prefect.server.schemas.schedules import CronSchedule
 from datetime import datetime, timedelta
 from typing import Dict, Any, List
@@ -170,7 +167,7 @@ async def generate_report_task(
 
 @flow(
     name="semantic_pulse_etl_flow",
-    task_runner=SequentialTaskRunner(),
+    # task_runner=SequentialTaskRunner(),  # Supprimé pour Prefect 2.x
     retries=1,
     retry_delay_seconds=300
 )
@@ -322,10 +319,15 @@ async def monitoring_flow() -> Dict[str, Any]:
         raise
 
 
-# Déploiements Prefect
+# Déploiements Prefect - COMMENTÉ POUR PRECFECT 2.x
 def create_deployments():
-    """Crée les déploiements Prefect"""
+    """Crée les déploiements Prefect - DÉSACTIVÉ pour Prefect 2.x"""
+    logger = get_run_logger()
+    logger.warning("Déploiements Prefect désactivés pour compatibilité Prefect 2.x")
+    return []
     
+    # Code commenté pour Prefect 2.x
+    """
     # Déploiement ETL quotidien
     etl_deployment = Deployment.build_from_flow(
         flow=semantic_pulse_etl_flow,
@@ -359,6 +361,7 @@ def create_deployments():
     )
     
     return [etl_deployment, emotion_deployment, clustering_deployment, monitoring_deployment]
+    """
 
 
 # Configuration Prefect
