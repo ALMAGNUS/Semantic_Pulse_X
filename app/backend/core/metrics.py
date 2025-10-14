@@ -3,10 +3,11 @@ Métriques Prometheus - Semantic Pulse X
 Monitoring des performances et de la qualité
 """
 
-from prometheus_client import Counter, Histogram, Gauge, Summary, start_http_server
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Any
+
+from prometheus_client import Counter, Gauge, Histogram, Summary, start_http_server
 
 # Métriques principales
 emotion_processing_total = Counter(
@@ -114,28 +115,28 @@ def monitor_emotion_processing(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        
+
         try:
             result = func(*args, **kwargs)
-            
+
             # Track success
             if hasattr(result, 'emotion_principale'):
                 track_emotion_processing(
                     result.emotion_principale,
                     kwargs.get('source', 'unknown')
                 )
-            
+
             return result
-            
+
         except Exception as e:
             # Track error
             track_emotion_processing('error', kwargs.get('source', 'unknown'))
             raise e
-            
+
         finally:
             duration = time.time() - start_time
             emotion_processing_duration.labels(emotion='unknown').observe(duration)
-    
+
     return wrapper
 
 
@@ -145,19 +146,19 @@ def monitor_api_request(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         start_time = time.time()
         status = '200'
-        
+
         try:
             result = func(*args, **kwargs)
             return result
-            
+
         except Exception as e:
             status = '500'
             raise e
-            
+
         finally:
             duration = time.time() - start_time
             track_api_request('GET', func.__name__, status, duration)
-    
+
     return wrapper
 
 
@@ -169,13 +170,14 @@ def start_metrics_server(port: int = 8000):
 
 def update_system_metrics():
     """Update system-level metrics"""
-    import psutil
     import os
-    
+
+    import psutil
+
     # Memory usage
     process = psutil.Process(os.getpid())
     memory_usage.set(process.memory_info().rss)
-    
+
     # Active connections (simulation)
     active_connections.set(10)  # Placeholder
 
@@ -184,6 +186,6 @@ def update_system_metrics():
 def update_metrics():
     """Update all metrics"""
     update_system_metrics()
-    
+
     # Mettre à jour d'autres métriques si nécessaire
     pass

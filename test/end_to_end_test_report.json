@@ -1,0 +1,80 @@
+{
+  "sources": {
+    "kaggle": {
+      "status": "FAIL",
+      "files": [
+        "data/raw/kaggle_tweets/sentiment140.csv"
+      ],
+      "records": 10000,
+      "issues": [
+        "Colonnes manquantes: ['sentiment']"
+      ]
+    },
+    "youtube": {
+      "status": "PASS",
+      "files": [
+        "data\\raw\\external_apis\\youtube_test_20250926_125143.json",
+        "data\\raw\\external_apis\\youtube_test_20250926_130714.json",
+        "data\\processed\\phase2_youtube_final_report.json"
+      ],
+      "records": 11,
+      "issues": []
+    },
+    "web_scraping": {
+      "status": "PASS",
+      "files": [
+        "data\\raw\\web_scraping\\scraping_analysis.json",
+        "data\\raw\\web_scraping\\web_scraping_20250926_141503.json",
+        "data\\raw\\web_scraping\\web_scraping_20251013_103649.json"
+      ],
+      "records": 26,
+      "issues": []
+    },
+    "gdelt": {
+      "status": "PASS",
+      "files": [
+        "data\\processed\\bigdata\\gdelt_gkg_fr_20251014_150007.json",
+        "data\\processed\\bigdata\\gdelt_gkg_fr_20251014_150007.parquet",
+        "data\\processed\\bigdata\\gdelt_sentiment_report_20251014_150008.json"
+      ],
+      "records": 2567,
+      "issues": []
+    },
+    "newsapi": {
+      "status": "FAIL",
+      "files": [],
+      "records": 0,
+      "issues": [
+        "Aucun fichier NewsAPI trouvé"
+      ]
+    }
+  },
+  "etl_pipeline": {
+    "status": "PASS",
+    "scripts": [
+      "scripts/aggregate_sources.py",
+      "scripts/load_aggregated_to_db.py",
+      "scripts/load_kaggle_to_db.py"
+    ],
+    "issues": []
+  },
+  "database": {
+    "status": "PASS",
+    "tables": {
+      "sqlite_sequence": 0,
+      "dim_pays": 1,
+      "dim_domaine": 2,
+      "dim_humeur": 3,
+      "sources": 487,
+      "contenus": 535,
+      "reactions": 0
+    },
+    "issues": []
+  },
+  "integration": {
+    "status": "PASS",
+    "sources_connected": 487,
+    "issues": []
+  },
+  "errors": []
+}

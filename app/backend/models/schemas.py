@@ -3,10 +3,11 @@ Schémas Pydantic - Semantic Pulse X
 Validation et sérialisation des données
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any
 from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 # Base schemas
@@ -24,10 +25,10 @@ class BaseSchema(BaseModel):
 class ProgrammeBase(BaseSchema):
     titre: str = Field(..., max_length=255)
     chaine: str = Field(..., max_length=100)
-    genre: Optional[str] = Field(None, max_length=50)
-    duree_minutes: Optional[int] = Field(None, ge=0)
+    genre: str | None = Field(None, max_length=50)
+    duree_minutes: int | None = Field(None, ge=0)
     date_diffusion: datetime
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ProgrammeCreate(ProgrammeBase):
@@ -44,7 +45,7 @@ class DiffusionBase(BaseSchema):
     programme_id: UUID
     date_debut: datetime
     date_fin: datetime
-    audience_estimee: Optional[int] = Field(None, ge=0)
+    audience_estimee: int | None = Field(None, ge=0)
 
 
 class DiffusionCreate(DiffusionBase):
@@ -59,8 +60,8 @@ class Diffusion(DiffusionBase):
 # Utilisateur schemas - MCD Merise
 class UtilisateurBase(BaseSchema):
     hash_anonyme: str = Field(..., max_length=64)
-    region_anonymisee: Optional[str] = Field(None, max_length=20)
-    age_groupe: Optional[str] = Field(None, max_length=10)
+    region_anonymisee: str | None = Field(None, max_length=20)
+    age_groupe: str | None = Field(None, max_length=10)
     langue_preferee: str = Field(default="fr", max_length=5)
 
 
@@ -71,21 +72,21 @@ class UtilisateurCreate(UtilisateurBase):
 class Utilisateur(UtilisateurBase):
     id: UUID
     created_at: datetime
-    last_activity: Optional[datetime] = None
+    last_activity: datetime | None = None
 
 
 # Réaction schemas - MCD Merise
 class ReactionBase(BaseSchema):
-    programme_id: Optional[UUID] = None
-    diffusion_id: Optional[UUID] = None
-    utilisateur_id: Optional[UUID] = None
+    programme_id: UUID | None = None
+    diffusion_id: UUID | None = None
+    utilisateur_id: UUID | None = None
     source_id: UUID
-    texte_anonymise: Optional[str] = None
+    texte_anonymise: str | None = None
     langue: str = Field(default="fr", max_length=5)
-    emotion_principale: Optional[str] = Field(None, max_length=50)
-    score_emotion: Optional[float] = Field(None, ge=0.0, le=1.0)
-    polarite: Optional[float] = Field(None, ge=-1.0, le=1.0)
-    confiance: Optional[float] = Field(None, ge=0.0, le=1.0)
+    emotion_principale: str | None = Field(None, max_length=50)
+    score_emotion: float | None = Field(None, ge=0.0, le=1.0)
+    polarite: float | None = Field(None, ge=-1.0, le=1.0)
+    confiance: float | None = Field(None, ge=0.0, le=1.0)
     timestamp: datetime
 
 
@@ -102,8 +103,8 @@ class Reaction(ReactionBase):
 class SourceBase(BaseSchema):
     nom: str = Field(..., max_length=100)
     type_source: str = Field(..., max_length=20)  # "file", "sql", "bigdata", "scraping", "api"
-    url: Optional[str] = Field(None, max_length=500)
-    configuration: Optional[Dict[str, Any]] = None
+    url: str | None = Field(None, max_length=500)
+    configuration: dict[str, Any] | None = None
     actif: bool = True
 
 
@@ -122,8 +123,8 @@ class LogIngestionBase(BaseSchema):
     date_ingestion: datetime
     nombre_records: int = Field(default=0, ge=0)
     statut: str = Field(..., max_length=20)  # "success", "error", "partial"
-    message: Optional[str] = None
-    configuration_utilisee: Optional[Dict[str, Any]] = None
+    message: str | None = None
+    configuration_utilisee: dict[str, Any] | None = None
 
 
 class LogIngestionCreate(LogIngestionBase):
@@ -136,13 +137,13 @@ class LogIngestion(LogIngestionBase):
 
 # Agrégation émotionnelle schemas - MLP Merise
 class AgregationEmotionnelleBase(BaseSchema):
-    programme_id: Optional[UUID] = None
-    diffusion_id: Optional[UUID] = None
+    programme_id: UUID | None = None
+    diffusion_id: UUID | None = None
     periode_debut: datetime
     periode_fin: datetime
-    emotion_dominante: Optional[str] = Field(None, max_length=50)
-    score_moyen: Optional[float] = Field(None, ge=0.0, le=1.0)
-    polarite_moyenne: Optional[float] = Field(None, ge=-1.0, le=1.0)
+    emotion_dominante: str | None = Field(None, max_length=50)
+    score_moyen: float | None = Field(None, ge=0.0, le=1.0)
+    polarite_moyenne: float | None = Field(None, ge=-1.0, le=1.0)
     nombre_reactions: int = Field(default=0, ge=0)
 
 
@@ -168,23 +169,23 @@ class TopicAnalytics(BaseSchema):
     topic: str
     count: int
     avg_polarity: float
-    top_emotions: List[EmotionAnalytics]
+    top_emotions: list[EmotionAnalytics]
 
 
 class TemporalAnalytics(BaseSchema):
     timestamp: datetime
-    emotions: List[EmotionAnalytics]
-    topics: List[TopicAnalytics]
+    emotions: list[EmotionAnalytics]
+    topics: list[TopicAnalytics]
 
 
 # API Response schemas
 class APIResponse(BaseSchema):
     success: bool = True
     message: str
-    data: Optional[Any] = None
+    data: Any | None = None
 
 
 class ErrorResponse(BaseSchema):
     success: bool = False
     error: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None

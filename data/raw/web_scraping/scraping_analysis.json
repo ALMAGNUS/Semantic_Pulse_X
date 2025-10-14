@@ -1,41 +1,39 @@
 {
-  "total_items": 15,
+  "total_items": 10,
   "types": {
-    "title": 12,
-    "content": 3
+    "title": 10
   },
   "sources": {
     "26a99afb": 5,
-    "ecd54954": 5,
-    "reddit_france": 5
+    "ecd54954": 5
   },
   "content_stats": {
-    "total_characters": 2136,
-    "avg_chars_per_item": 142,
-    "longest_content": 415
+    "total_characters": 1072,
+    "avg_chars_per_item": 107,
+    "longest_content": 149
   },
   "sample_items": [
     {
-      "content": "[PERSON] sur les enjeux de la COP30 : «Lorsque le contexte international est difficile, la diplomatie est encore plus nécessaire»",
+      "content": "Libération des 20 otages israéliens encore vivants : découvrez leurs portraits",
       "source": "web_scraping",
       "url_hash": "26a99afb",
-      "collected_at": "2025-09-26T14:14:26.027756",
+      "collected_at": "2025-10-13T10:36:34.147921",
       "anonymized": true,
       "type": "title"
     },
     {
-      "content": "Avec l’inculpation de [PERSON], l’ex-chef du FBI, [PERSON] met ses promesses de vengeance à exécution",
+      "content": "EN DIRECT - Gaza : les 20 otages vivants ont été libérés, selon plusieurs médias israéliens",
       "source": "web_scraping",
       "url_hash": "26a99afb",
-      "collected_at": "2025-09-26T14:14:26.027756",
+      "collected_at": "2025-10-13T10:36:34.147921",
       "anonymized": true,
       "type": "title"
     },
     {
-      "content": "Guerre commerciale : [PERSON] annonce des nouveaux droits de douane, dont 100 % pour les médicaments importés",
+      "content": "[PERSON], un sommet pour acter la fin de la guerre à Gaza et préparer «le jour d’après»",
       "source": "web_scraping",
       "url_hash": "26a99afb",
-      "collected_at": "2025-09-26T14:14:26.027756",
+      "collected_at": "2025-10-13T10:36:34.147921",
       "anonymized": true,
       "type": "title"
     }

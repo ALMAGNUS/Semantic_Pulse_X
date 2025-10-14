@@ -1,0 +1,35 @@
+[
+  {
+    "title": "Nouveau gouvernement Lecornu 2 : réactions politiques",
+    "description": "Les réactions politiques suite à la nomination du nouveau gouvernement.",
+    "content": "Le nouveau gouvernement Lecornu 2 suscite des réactions mitigées dans la classe politique française.",
+    "url": "https://example.com/news1",
+    "publishedAt": "2024-10-14T10:00:00Z",
+    "source": "France Info",
+    "sentiment": "neutre",
+    "pays": "FR",
+    "domaine": "politique"
+  },
+  {
+    "title": "Économie française : tendances positives",
+    "description": "Les indicateurs économiques montrent des signes d'amélioration.",
+    "content": "L'économie française affiche des signes encourageants selon les derniers chiffres.",
+    "url": "https://example.com/news2",
+    "publishedAt": "2024-10-14T11:00:00Z",
+    "source": "Le Monde",
+    "sentiment": "positif",
+    "pays": "FR",
+    "domaine": "économie"
+  },
+  {
+    "title": "Crise internationale : inquiétudes croissantes",
+    "description": "La situation internationale préoccupe les observateurs.",
+    "content": "Les tensions internationales continuent de préoccuper les experts et les citoyens.",
+    "url": "https://example.com/news3",
+    "publishedAt": "2024-10-14T12:00:00Z",
+    "source": "Le Figaro",
+    "sentiment": "négatif",
+    "pays": "FR",
+    "domaine": "international"
+  }
+]

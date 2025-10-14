@@ -3,22 +3,18 @@ Routes API - Semantic Pulse X
 Endpoints pour l'API REST
 """
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-import json
 
-from app.backend.core.database import get_db
-from app.backend.models.schemas import (
-    Reaction, ReactionCreate, Programme, ProgrammeCreate,
-    EmotionAnalytics, TopicAnalytics, APIResponse, ErrorResponse
-)
-from app.backend.api.wordcloud_routes import wordcloud_router
-from app.backend.etl.pipeline import etl_pipeline
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from app.backend.ai.emotion_classifier import emotion_classifier
-from app.backend.ai.topic_clustering import topic_clustering
 from app.backend.ai.langchain_agent import semantic_agent
+from app.backend.core.database import get_db
+from app.backend.etl.pipeline import etl_pipeline
+from app.backend.models.schemas import (
+    APIResponse,
+)
 
 # Routers
 emotions = APIRouter()
@@ -30,7 +26,7 @@ data_sources = APIRouter()
 async def get_emotions(
     limit: int = 100,
     offset: int = 0,
-    emotion: Optional[str] = None,
+    emotion: str | None = None,
     db: Session = Depends(get_db)
 ):
     """Récupère les réactions émotionnelles"""
@@ -59,15 +55,15 @@ async def get_emotions(
             "limit": limit,
             "offset": offset
         }
-        
+
         return APIResponse(
             success=True,
             message="Émotions récupérées avec succès",
             data=data
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @emotions.post("/analyze", response_model=APIResponse)
@@ -79,29 +75,29 @@ async def analyze_emotion(
     try:
         if not text.strip():
             raise HTTPException(status_code=400, detail="Texte vide")
-        
+
         # Classification émotionnelle
         result = emotion_classifier.classify_emotion(text)
-        
+
         # Ajouter le texte original
         result["text"] = text
         result["timestamp"] = datetime.now().isoformat()
-        
+
         return APIResponse(
             success=True,
             message="Analyse émotionnelle terminée",
             data=result
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @emotions.get("/analytics", response_model=APIResponse)
 async def get_emotion_analytics(
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    source: Optional[str] = None
+    start_date: str | None = None,
+    end_date: str | None = None,
+    source: str | None = None
 ):
     """Récupère les analytics émotionnelles"""
     try:
@@ -130,21 +126,21 @@ async def get_emotion_analytics(
                 "end": end_date or datetime.now().isoformat()
             }
         }
-        
+
         return APIResponse(
             success=True,
             message="Analytics émotionnelles récupérées",
             data=analytics
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @predictions.get("/", response_model=APIResponse)
 async def get_predictions(
     horizon: int = 24,
-    emotion: Optional[str] = None
+    emotion: str | None = None
 ):
     """Récupère les prédictions émotionnelles"""
     try:
@@ -157,7 +153,7 @@ async def get_predictions(
                 "confidence": 0.7 + (i * 0.01),
                 "trend": "positive" if i % 2 == 0 else "negative"
             })
-        
+
         return APIResponse(
             success=True,
             message="Prédictions générées",
@@ -167,32 +163,32 @@ async def get_predictions(
                 "generated_at": datetime.now().isoformat()
             }
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @predictions.post("/analyze", response_model=APIResponse)
 async def analyze_trends(
-    texts: List[str],
+    texts: list[str],
     background_tasks: BackgroundTasks
 ):
     """Analyse les tendances émotionnelles"""
     try:
         if not texts:
             raise HTTPException(status_code=400, detail="Aucun texte fourni")
-        
+
         # Classification des émotions
         emotion_results = emotion_classifier.classify_batch(texts)
-        
+
         # Analyse des tendances
         trend_analysis = emotion_classifier.detect_emotion_trend(
             [(text, datetime.now().isoformat()) for text in texts]
         )
-        
+
         # Génération d'insights
         insights = semantic_agent.analyze_emotion_trends(emotion_results)
-        
+
         return APIResponse(
             success=True,
             message="Analyse des tendances terminée",
@@ -203,9 +199,9 @@ async def analyze_trends(
                 "total_texts": len(texts)
             }
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @data_sources.get("/", response_model=APIResponse)
@@ -249,35 +245,35 @@ async def get_data_sources():
                 "last_update": datetime.now().isoformat()
             }
         ]
-        
+
         return APIResponse(
             success=True,
             message="Sources de données récupérées",
             data={"sources": sources}
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @data_sources.post("/sync", response_model=APIResponse)
 async def sync_data_sources(
     background_tasks: BackgroundTasks,
-    source: Optional[str] = None
+    source: str | None = None
 ):
     """Synchronise les sources de données"""
     try:
         # Exécuter le pipeline ETL en arrière-plan
         background_tasks.add_task(run_etl_pipeline, source)
-        
+
         return APIResponse(
             success=True,
             message="Synchronisation des sources démarrée",
             data={"status": "started", "source": source}
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @data_sources.get("/stats", response_model=APIResponse)
@@ -298,18 +294,18 @@ async def get_data_sources_stats():
                 "api": {"records": 100, "status": "active"}
             }
         }
-        
+
         return APIResponse(
             success=True,
             message="Statistiques des sources récupérées",
             data=stats
         )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-async def run_etl_pipeline(source: Optional[str] = None):
+async def run_etl_pipeline(source: str | None = None):
     """Exécute le pipeline ETL en arrière-plan"""
     try:
         if source:
@@ -318,9 +314,9 @@ async def run_etl_pipeline(source: Optional[str] = None):
         else:
             # Exécuter pour toutes les sources
             results = etl_pipeline.run_full_pipeline()
-        
+
         print(f"Pipeline ETL terminé: {results}")
-        
+
     except Exception as e:
         print(f"Erreur pipeline ETL: {e}")
 
