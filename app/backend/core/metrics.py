@@ -134,7 +134,7 @@ def track_model_drift(model_type: str, psi_score: float, ks_statistic: float, al
     """Track model drift metrics"""
     model_drift_psi.labels(model_type=model_type).set(psi_score)
     model_drift_ks.labels(model_type=model_type).set(ks_statistic)
-    
+
     # Track alerts
     for alert in alerts:
         model_drift_alerts.labels(

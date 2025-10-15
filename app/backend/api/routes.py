@@ -11,11 +11,12 @@ from sqlalchemy.orm import Session
 from app.backend.ai.emotion_classifier import emotion_classifier
 from app.backend.ai.langchain_agent import semantic_agent
 from app.backend.core.database import get_db
+from app.backend.core.metrics import track_model_accuracy, track_model_drift
 from app.backend.etl.pipeline import etl_pipeline
 from app.backend.models.schemas import (
     APIResponse,
 )
-from app.backend.core.metrics import track_model_drift, track_model_accuracy
+from scripts.model_drift_monitor import ModelDriftMonitor
 
 # Routers
 emotions = APIRouter()
@@ -281,17 +282,17 @@ async def sync_data_sources(
 async def get_prometheus_metrics():
     """Expose les métriques Prometheus"""
     try:
-        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
         from fastapi import Response
-        
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
         # Générer les métriques Prometheus
         metrics_data = generate_latest()
-        
+
         return Response(
             content=metrics_data,
             media_type=CONTENT_TYPE_LATEST
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -302,7 +303,7 @@ async def get_drift_monitoring():
     try:
         monitor = ModelDriftMonitor()
         results = monitor.run_monitoring()
-        
+
         # Track metrics in Prometheus
         track_model_drift(
             model_type="emotion_classifier",
@@ -310,20 +311,20 @@ async def get_drift_monitoring():
             ks_statistic=results.get("ks_statistic", 0.0),
             alerts=results.get("alerts", [])
         )
-        
+
         track_model_accuracy(
             model_type="emotion_classifier",
             current_accuracy=0.87,  # Valeur simulée
             reference_accuracy=0.89  # Valeur simulée
         )
-        
+
         return APIResponse(
             success=True,
             message="Surveillance de dérive exécutée",
             data=results,
             timestamp=datetime.now().isoformat()
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
