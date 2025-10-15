@@ -5,7 +5,7 @@
 
 ## 🎯 **OBJECTIF DU PROJET**
 
-**Semantic Pulse X** est une plateforme d'analyse de sentiment en temps réel qui collecte, agrège et analyse les émotions des Français à partir de **5 sources de données distinctes**, respectant parfaitement les exigences de certification E1/E2/E3.
+**Semantic Pulse X** est une plateforme d'analyse de sentiment en temps réel qui collecte, agrège et analyse les émotions des Français à partir de **5 sources de données distinctes**, respectant les exigences de certification E1/E2/E3.
 
 ---
 

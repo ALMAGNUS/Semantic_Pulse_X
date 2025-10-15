@@ -36,11 +36,11 @@ class ComponentTester:
         try:
             result = test_function()
             if result:
-                logger.info(f"✅ {component_name}: SUCCÈS")
+                logger.info(f"✓ {component_name}: OK")
                 self.test_results['passed_tests'] += 1
                 self.test_results['components'][component_name] = {
                     'status': 'PASSED',
-                    'message': 'Test réussi'
+                    'message': 'Test passé'
                 }
             else:
                 logger.info(f"❌ {component_name}: ÉCHEC")
@@ -100,7 +100,7 @@ class ComponentTester:
                 logger.info(f"    - {table_name}: {count} enregistrements")
 
             conn.close()
-            logger.info("✅ Connexion à la base de données réussie")
+            logger.info("✓ Connexion à la base de données établie")
             return True
 
         except Exception as e:
@@ -116,7 +116,7 @@ class ComponentTester:
             sys.path.insert(0, str(Path("app")))
 
             from backend.main import app
-            logger.info("  ✅ FastAPI importé avec succès")
+            logger.info("  ✓ FastAPI importé")
             logger.info(f"  📊 Routes disponibles: {len(app.routes)}")
 
             return True
@@ -130,7 +130,7 @@ class ComponentTester:
         logger.info("📱 Test d'import Streamlit...")
 
         try:
-            logger.info("  ✅ Streamlit importé avec succès")
+            logger.info("  ✓ Streamlit importé")
 
             # Tester l'import du fichier Streamlit
             sys.path.insert(0, str(Path("app/frontend")))
@@ -337,20 +337,20 @@ class ComponentTester:
         logger.info("📊 RÉSUMÉ DES TESTS")
         logger.info("=" * 60)
         logger.info(f"📈 Total des tests: {self.test_results['total_tests']}")
-        logger.info(f"✅ Tests réussis: {self.test_results['passed_tests']}")
+        logger.info(f"✓ Tests passés: {self.test_results['passed_tests']}")
         logger.info(f"❌ Tests échoués: {self.test_results['failed_tests']}")
 
         success_rate = (self.test_results['passed_tests'] / self.test_results['total_tests']) * 100
         logger.info(f"📊 Taux de réussite: {success_rate:.1f}%")
 
         if success_rate >= 90:
-            logger.info("🎉 EXCELLENT! Presque tous les composants fonctionnent")
+            logger.info("✓ Bon taux de réussite")
         elif success_rate >= 70:
-            logger.info("✅ BON! La plupart des composants fonctionnent")
+            logger.info("✓ Taux de réussite acceptable")
         elif success_rate >= 50:
-            logger.info("⚠️ MOYEN! Plusieurs composants ont des problèmes")
+            logger.info("⚠️ Taux de réussite moyen")
         else:
-            logger.info("❌ PROBLÉMATIQUE! Beaucoup de composants ont des problèmes")
+            logger.info("❌ Taux de réussite faible")
 
         logger.info("=" * 60)
 

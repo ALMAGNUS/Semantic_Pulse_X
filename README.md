@@ -1,10 +1,15 @@
 # 🧠 Semantic Pulse X - Cartographie dynamique des émotions médiatiques
 
-> **L'IA qui prédit les vagues émotionnelles médiatiques avant qu'elles n'arrivent**
+[![Release](https://img.shields.io/badge/release-v1.0.0-blue)](https://github.com/ALMAGNUS/Semantic_Pulse_X/releases/tag/v1.0.0)
+![Python](https://img.shields.io/badge/python-3.10%2B-green)
+![License](https://img.shields.io/badge/license-MIT-informational)
+![Status](https://img.shields.io/badge/status-Production%20Ready-success)
+
+> **Analyse de sentiment en temps réel avec pipeline ETL MERISE**
 
 ## 🎯 Vision
 
-Solution d'intelligence artificielle avancée capable de cartographier en temps réel les émotions et thématiques dominantes dans les médias, avec prédiction proactive des tendances émotionnelles.
+Solution d'analyse de sentiment et d'émotions dans les médias avec pipeline ETL complet et modélisation MERISE.
 
 ## 🏗️ Architecture
 
@@ -199,7 +204,8 @@ python scripts/test_components_individual.py
 - **🔒 RGPD** : `docs/RGPD.md`
 - **🗄️ Merise** : `docs/MERISE_MODELING.md`
 - **📊 Schéma MERISE** : `docs/SCHEMA_MERISE_COMPLET.md`
-- **🎨 Code Mermaid** : `docs/CODE_MERMAID_MERISE.md`
+- **🎨 Code Mermaid** : `docs/CODE_MERMAID_MERISE_REEL.md` (Schémas exacts avec cardinalités)
+- **🎨 Mermaid Présentation** : `docs/MERMAID_PRESENTATION.md` (Version simplifiée)
 - **📋 Découpage Artificiel** : `docs/DECOUPAGE_ARTIFICIEL.md`
 - **📋 Méthodologie SCRUM** : `docs/SCRUM_METHODOLOGY.md`
 
@@ -221,18 +227,16 @@ python scripts/test_components_individual.py
 
 ## 🏆 Statut du projet
 
-**✅ PROJET OPÉRATIONNEL ET CONFORME**
+**PROJET OPÉRATIONNEL**
 
-- ✅ **Sources de données** : 5 types implémentés
-- ✅ **Pipeline ETL** : Complet et fonctionnel
-- ✅ **MERISE** : MCD/MLD/MLP respectés
-- ✅ **RGPD** : Anonymisation et traçabilité complètes
-- ✅ **IA** : Classification émotionnelle opérationnelle
-- ✅ **Interface** : Streamlit avec données réelles
-- ✅ **Documentation** : Complète et à jour
-- ✅ **Tests** : Pipeline end-to-end validé
-
-**Le projet est prêt pour la présentation au jury !** 🎯✅
+- **Sources de données** : 5 types implémentés
+- **Pipeline ETL** : Complet et fonctionnel
+- **MERISE** : MCD/MLD/MLP respectés
+- **RGPD** : Anonymisation et traçabilité complètes
+- **IA** : Classification émotionnelle opérationnelle
+- **Interface** : Streamlit avec données réelles
+- **Documentation** : Complète et à jour
+- **Tests** : Pipeline end-to-end validé
 
 ## 📞 Support
 
