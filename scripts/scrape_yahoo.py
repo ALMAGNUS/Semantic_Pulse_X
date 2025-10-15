@@ -189,17 +189,17 @@ def main() -> int:
             # enrichissement normalisé
             item["pays"] = args.pays or "FR"
             item["domaine"] = args.domaine or "inconnu"
-            item["collected_at"] = datetime.utcnow().isoformat()
+            item["collected_at"] = datetime.utcnow().isoformat() + "Z"
             collected.append(item)
         except Exception as e:
-            print(f"❌ Erreur sur {u}: {e}")
+            print(f"ERREUR sur {u}: {e}")
 
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     out_path = out_dir / f"yahoo_{ts}.json"
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(collected, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ {len(collected)} articles sauvegardés → {out_path}")
+    print(f"OK {len(collected)} articles sauvegardes -> {out_path}")
     return 0
 
 
