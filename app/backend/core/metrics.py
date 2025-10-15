@@ -70,10 +70,35 @@ data_quality_score = Gauge(
     ['source']
 )
 
-anonymization_rate = Gauge(
-    'anonymization_rate',
-    'Rate of successful anonymization',
-    ['source']
+# Métriques de dérive des modèles
+model_drift_psi = Gauge(
+    'model_drift_psi',
+    'Population Stability Index for model drift detection',
+    ['model_type']
+)
+
+model_drift_ks = Gauge(
+    'model_drift_ks_statistic',
+    'Kolmogorov-Smirnov statistic for model drift detection',
+    ['model_type']
+)
+
+model_drift_alerts = Counter(
+    'model_drift_alerts_total',
+    'Total number of model drift alerts',
+    ['alert_type', 'severity']
+)
+
+model_accuracy_current = Gauge(
+    'model_accuracy_current',
+    'Current model accuracy',
+    ['model_type']
+)
+
+model_accuracy_reference = Gauge(
+    'model_accuracy_reference',
+    'Reference model accuracy',
+    ['model_type']
 )
 
 
@@ -105,9 +130,23 @@ def track_data_quality(source: str, score: float):
     data_quality_score.labels(source=source).set(score)
 
 
-def track_anonymization(source: str, success_rate: float):
-    """Track anonymization success rate"""
-    anonymization_rate.labels(source=source).set(success_rate)
+def track_model_drift(model_type: str, psi_score: float, ks_statistic: float, alerts: list):
+    """Track model drift metrics"""
+    model_drift_psi.labels(model_type=model_type).set(psi_score)
+    model_drift_ks.labels(model_type=model_type).set(ks_statistic)
+    
+    # Track alerts
+    for alert in alerts:
+        model_drift_alerts.labels(
+            alert_type=alert.get('type', 'unknown'),
+            severity=alert.get('severity', 'info')
+        ).inc()
+
+
+def track_model_accuracy(model_type: str, current_accuracy: float, reference_accuracy: float):
+    """Track model accuracy metrics"""
+    model_accuracy_current.labels(model_type=model_type).set(current_accuracy)
+    model_accuracy_reference.labels(model_type=model_type).set(reference_accuracy)
 
 
 def monitor_emotion_processing(func: Callable) -> Callable:

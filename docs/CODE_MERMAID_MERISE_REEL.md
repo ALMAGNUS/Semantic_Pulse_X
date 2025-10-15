@@ -25,9 +25,9 @@ erDiagram
     
     SOURCES {
         integer id PK
-        varchar nom
-        varchar type
-        varchar url_base
+        varchar nom "VARCHAR(100)"
+        varchar type "VARCHAR(20)"
+        varchar url_base "VARCHAR(500)"
         boolean actif
         datetime created_at
     }
@@ -37,18 +37,18 @@ erDiagram
         integer source_id FK
         integer pays_id FK
         integer domaine_id FK
-        varchar url
+        varchar url "VARCHAR(1000)"
         text titre
         text resume
         text texte
         datetime publication_date
-        varchar auteur
-        varchar langue
+        varchar auteur "VARCHAR(200)"
+        varchar langue "VARCHAR(5)"
         datetime collected_at
-        varchar sentiment
+        varchar sentiment "VARCHAR(30)"
         float confidence
         text themes
-        varchar source_type
+        varchar source_type "VARCHAR(50)"
     }
     
     REACTIONS {

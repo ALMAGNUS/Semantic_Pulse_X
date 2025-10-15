@@ -111,7 +111,7 @@ def main() -> int:
             filled = fill_missing(norm)
 
             # Filtres qualité
-            if args.drop_empty_title and not filled.get("titre", "").strip():
+            if args.drop_empty_title and not (filled.get("titre") or "").strip():
                 continue
             texte = filled.get("texte", "") or ""
             if len(texte) < args.min_text_len:
