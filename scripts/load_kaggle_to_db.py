@@ -11,8 +11,8 @@ import pandas as pd
 def load_kaggle_data():
     """Charge les données Kaggle dans la base SQLite"""
 
-    # Chemin vers le fichier Kaggle
-    kaggle_file = Path("data/raw/kaggle_tweets/sentiment140.csv")
+    # Chemin vers le fichier Kaggle (50% pour base simple)
+    kaggle_file = Path("data/raw/kaggle_tweets/db_source_tweets.csv")
 
     if not kaggle_file.exists():
         print("❌ Fichier Kaggle non trouvé")

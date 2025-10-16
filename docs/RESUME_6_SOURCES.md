@@ -10,33 +10,46 @@
 ---
 
 ## 📁 **SOURCE 1 : FICHIER PLAT**
-- **Type** : Dataset Kaggle Sentiment140 (CSV)
-- **Volume** : 1.6M tweets
+- **Type** : 50% Dataset Kaggle Sentiment140 (CSV)
+- **Volume** : 3,333 tweets (50% du dataset Kaggle)
 - **Format** : CSV avec colonnes (sentiment, texte, id)
-- **Utilisation** : Entraînement et validation des modèles
-- **Script** : `scripts/load_kaggle_to_db.py`
+- **Utilisation** : Source de données pour fichier plat
+- **Script** : `scripts/split_kaggle_dataset.py`
 
 ---
 
-## 🗄️ **SOURCE 2 : BASE DE DONNÉES RELATIONNELLE**
-- **Type** : SQLite avec schéma MERISE
-- **Tables** : sources, contenus, reactions, dim_*
-- **Volume** : 535 contenus intégrés
-- **Utilisation** : Stockage structuré des données
-- **Script** : `scripts/generate_orm_schema.py`
+## 🗄️ **SOURCE 2 : BASE DE DONNÉES SIMPLE**
+- **Type** : 50% Dataset Kaggle Sentiment140 (SQLite)
+- **Tables** : tweets_kaggle (table simple)
+- **Volume** : 3,333 tweets (50% du dataset Kaggle)
+- **Utilisation** : Source de données pour base de données simple
+- **Script** : `scripts/split_kaggle_dataset.py`
 
 ---
 
-## 🌐 **SOURCE 3 : API EXTERNE**
+## 📈 **SOURCE 3 : BIG DATA**
+- **Type** : GDELT GKG (Global Knowledge Graph)
+- **Volume** : 1,283 enregistrements géopolitiques
+- **Format** : Données structurées géopolitiques
+- **Utilisation** : Système Big Data pour analyse géopolitique
+- **Scripts** :
+  - `scripts/gdelt_gkg_pipeline.py`
+  - `scripts/ingest_gdelt.py`
+
+---
+
+## 🌐 **SOURCE 4 : API EXTERNE**
 - **Type** : YouTube Data API v3 + NewsAPI
 - **Volume** : 180 vidéos YouTube + articles NewsAPI
 - **Format** : JSON avec métadonnées complètes
 - **Utilisation** : Collecte temps réel de contenu
-- **Script** : `app/backend/data_sources/youtube_api.py`
+- **Scripts** : 
+  - `scripts/collect_hugo_youtube.py`
+  - `scripts/collect_newsapi.py`
 
 ---
 
-## 🕷️ **SOURCE 4 : WEB SCRAPING**
+## 🕷️ **SOURCE 5 : WEB SCRAPING**
 - **Type** : Yahoo Actualités FR + France Info
 - **Technologie** : Selenium + BeautifulSoup
 - **Volume** : Articles français récents
@@ -47,41 +60,36 @@
 
 ---
 
-## 📈 **SOURCE 5 : BIG DATA**
-- **Type** : GDELT GKG (Global Knowledge Graph)
-- **Volume** : 1,283 enregistrements géopolitiques
-- **Format** : Données structurées géopolitiques
-- **Utilisation** : Analyse géopolitique française
-- **Scripts** :
-  - `scripts/gdelt_gkg_pipeline.py`
-  - `scripts/ingest_gdelt.py`
-
----
-
 ## 🔄 **SOURCE 6 : BASE AGRÉGÉE MERISE**
-- **Type** : `semantic_pulse.db` - Base finale intégrée
-- **Volume** : 535 contenus analysés et agrégés
+- **Type** : `semantic_pulse.db` - Addition des 5 sources précédentes
+- **Volume** : 535 contenus analysés et agrégés (addition des 5 sources)
 - **Format** : SQLite avec schéma MERISE complet
-- **Utilisation** : Base de données finale pour l'application
-- **Script** : `scripts/load_aggregated_to_db.py`
+- **Utilisation** : Base de données finale MERISE pour l'application
+- **Scripts** : 
+  - `scripts/aggregate_sources.py` (agrégation des 5 sources)
+  - `scripts/load_aggregated_to_db.py` (chargement en base MERISE)
 
 ---
 
 ## 🔄 **PIPELINE D'INTÉGRATION**
 
-### **Étape 1 : Collecte**
+### **Étape 1 : Collecte des 5 sources**
 ```
-Sources 1-5 → Scripts de collecte → Données brutes
+Source 1 (50% Kaggle) → split_kaggle_dataset.py → file_source_tweets.csv
+Source 2 (50% Kaggle) → split_kaggle_dataset.py → db_source_tweets.csv
+Source 3 (GDELT) → gdelt_gkg_pipeline.py → gdelt_data.json
+Source 4 (APIs) → collect_hugo_youtube.py + collect_newsapi.py → external_apis/
+Source 5 (Scraping) → scrape_yahoo.py + scrape_franceinfo_selenium.py → scraped/
 ```
 
-### **Étape 2 : Agrégation**
+### **Étape 2 : Agrégation des 5 sources**
 ```
-Données brutes → aggregate_sources.py → Données normalisées
+5 sources → aggregate_sources.py → integrated.json (données normalisées)
 ```
 
-### **Étape 3 : Chargement**
+### **Étape 3 : Chargement en base MERISE**
 ```
-Données normalisées → load_aggregated_to_db.py → Base MERISE finale
+integrated.json → load_aggregated_to_db.py → semantic_pulse.db (6ème source)
 ```
 
 ---

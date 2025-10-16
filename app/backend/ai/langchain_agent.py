@@ -22,16 +22,19 @@ class SemanticPulseAgent:
     def _initialize_llm(self):
         """Initialise le modèle LangChain GRATUIT"""
         try:
-            # Utiliser Ollama (GRATUIT) en priorité
-            if ollama_client.is_available():
-                self.llm = ollama_client.get_llm()
+            # Utiliser Ollama (GRATUIT) en priorité si dispo
+            if ollama_client.is_available() and hasattr(ollama_client, "generate_text"):
+                # Interface minimale compatible LC: wrapper callable
+                class OllamaLLM:
+                    def __call__(self_inner, text):
+                        return ollama_client.generate_text(text, max_tokens=256, temperature=0.3)
+
+                self.llm = OllamaLLM()
                 print("✅ Agent LangChain initialisé avec Ollama (GRATUIT)")
             else:
-                # Fallback vers un modèle local HuggingFace (GRATUIT)
                 self._initialize_fallback()
         except Exception as e:
             print(f"❌ Erreur initialisation LangChain: {e}")
-            # Fallback vers un modèle local
             self._initialize_fallback()
 
     def _initialize_fallback(self):

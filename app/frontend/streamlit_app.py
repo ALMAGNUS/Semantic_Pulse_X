@@ -4,6 +4,7 @@ Dashboard interactif pour les analystes
 """
 
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -215,8 +216,8 @@ def get_real_data_volumes():
 
         volumes['YouTube'] = total_videos
 
-        # Compter les tweets Kaggle
-        kaggle_file = Path("data/raw/kaggle_tweets/sentiment140.csv")
+        # Compter les tweets Kaggle (50% fichier plat)
+        kaggle_file = Path("data/raw/kaggle_tweets/file_source_tweets.csv")
         if kaggle_file.exists():
             df_kaggle = pd.read_csv(kaggle_file)
             volumes['Kaggle'] = len(df_kaggle)
@@ -227,7 +228,7 @@ def get_real_data_volumes():
             import sqlite3
             conn = sqlite3.connect(db_file)
             cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM tweets_kaggle")
+            cursor.execute("SELECT COUNT(*) FROM contenus")
             volumes['Base de données'] = cursor.fetchone()[0]
             conn.close()
 
@@ -295,21 +296,22 @@ def show_dashboard():
     real_volumes = get_real_data_volumes()
 
     data = {
-        'Source': ['YouTube', 'Kaggle', 'Base de données', 'Big Data', 'Web Scraping'],
+        'Source': ['Kaggle Fichier plat', 'Kaggle Base simple', 'GDELT Big Data', 'APIs externes', 'Web Scraping', 'Base MERISE'],
         'Volume': [
-            real_volumes['YouTube'],
             real_volumes['Kaggle'],
-            real_volumes['Base de données'],
+            real_volumes['Kaggle'],
             real_volumes['Big Data'],
-            real_volumes['Web Scraping']
+            real_volumes['YouTube'],
+            real_volumes['Web Scraping'],
+            real_volumes['Base de données']
         ],
-        'Type': ['Vidéos', 'Tweets', 'Enregistrements', 'Lignes', 'Articles']
+        'Type': ['Tweets CSV', 'Tweets SQLite', 'Événements', 'Vidéos + Articles', 'Articles', 'Contenus agrégés']
     }
 
     df = pd.DataFrame(data)
 
     # Graphique en barres avec couleurs fixes et présentation propre
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
     fig = px.bar(df, x='Source', y='Volume',
                  title="Volume de données par source",
                  color_discrete_sequence=colors,
@@ -359,30 +361,35 @@ def show_data_overview():
     volumes = get_real_data_volumes()
 
     sources = {
-        "📺 YouTube Data API": {
-            "Description": "Collecte de vidéos HugoDécrypte",
-            "Volume": f"{volumes.get('YouTube', 0)} vidéos récentes",
-            "Statut": "✅ Actif" if volumes.get('YouTube', 0) > 0 else "⚠️ Aucune donnée"
-        },
-        "📊 Kaggle Tweets": {
-            "Description": "Dataset Sentiment140",
+        "📁 Kaggle Fichier plat": {
+            "Description": "50% Dataset Sentiment140 (CSV)",
             "Volume": f"{volumes.get('Kaggle', 0):,} tweets",
             "Statut": "✅ Traité" if volumes.get('Kaggle', 0) > 0 else "⚠️ Aucune donnée"
         },
-        "🗄️ Base relationnelle": {
-            "Description": "PostgreSQL/SQLite",
-            "Volume": f"{volumes.get('Base de données', 0):,} enregistrements",
-            "Statut": "✅ Opérationnelle" if volumes.get('Base de données', 0) > 0 else "⚠️ Aucune donnée"
+        "🗄️ Kaggle Base simple": {
+            "Description": "50% Dataset Sentiment140 (SQLite)",
+            "Volume": f"{volumes.get('Kaggle', 0):,} tweets",
+            "Statut": "✅ Traité" if volumes.get('Kaggle', 0) > 0 else "⚠️ Aucune donnée"
         },
-        "📦 Big Data": {
-            "Description": "Parquet + MinIO",
-            "Volume": f"{volumes.get('Big Data', 0):,} lignes",
+        "📈 GDELT Big Data": {
+            "Description": "GDELT GKG (Global Knowledge Graph)",
+            "Volume": f"{volumes.get('Big Data', 0):,} événements",
             "Statut": "✅ Compressé" if volumes.get('Big Data', 0) > 0 else "⚠️ Aucune donnée"
         },
-        "🌐 Web Scraping": {
-            "Description": "Articles de presse français",
+        "🌐 APIs externes": {
+            "Description": "YouTube + NewsAPI",
+            "Volume": f"{volumes.get('YouTube', 0)} vidéos + articles",
+            "Statut": "✅ Actif" if volumes.get('YouTube', 0) > 0 else "⚠️ Aucune donnée"
+        },
+        "🕷️ Web Scraping": {
+            "Description": "Yahoo + Franceinfo",
             "Volume": f"{volumes.get('Web Scraping', 0)} articles",
             "Statut": "✅ Collecté" if volumes.get('Web Scraping', 0) > 0 else "⚠️ Aucune donnée"
+        },
+        "🔄 Base MERISE": {
+            "Description": "Addition des 5 sources",
+            "Volume": f"{volumes.get('Base de données', 0):,} contenus",
+            "Statut": "✅ Opérationnelle" if volumes.get('Base de données', 0) > 0 else "⚠️ Aucune donnée"
         }
     }
 
@@ -577,7 +584,19 @@ def show_pipeline():
 
     with col2:
         if st.button("📊 Voir les logs"):
-            st.info("📋 Logs disponibles dans la console")
+            # Afficher les logs réels
+            try:
+                log_file = Path("data/logs/app.log")
+                if log_file.exists():
+                    with open(log_file, encoding='utf-8') as f:
+                        logs = f.readlines()
+                        # Afficher les 20 dernières lignes
+                        recent_logs = logs[-20:] if len(logs) > 20 else logs
+                        st.text_area("📋 Logs récents:", value="".join(recent_logs), height=200)
+                else:
+                    st.warning("⚠️ Aucun fichier de log trouvé")
+            except Exception as e:
+                st.error(f"❌ Erreur lors de la lecture des logs: {e}")
 
     with col3:
         if st.button("🔄 Redémarrer"):
@@ -588,6 +607,106 @@ def show_realtime_analysis():
 
     st.header("🔍 Analyse Temps Réel")
     st.subheader("Analyse des émotions sur des événements actuels")
+
+    # Section de collecte dynamique
+    st.subheader("📡 Collecte Dynamique de Données")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("🕷️ Web Scraping Yahoo+Franceinfo", type="primary"):
+            with st.spinner("Collecte en cours..."):
+                try:
+                    # Lancer le script de scraping Yahoo
+                    import subprocess
+                    result = subprocess.run([
+                        "python", "scripts/scrape_yahoo.py",
+                        "--discover", "1", "--pays", "FR", "--domaine", "politique"
+                    ], capture_output=True, text=True, timeout=30)
+
+                    if result.returncode == 0:
+                        st.success("✅ Données Yahoo collectées!")
+                        st.info(f"📊 {result.stdout}")
+                    else:
+                        st.error(f"❌ Erreur: {result.stderr}")
+                except Exception as e:
+                    st.error(f"❌ Erreur de collecte: {e}")
+
+    with col2:
+        if st.button("📺 YouTube Hugo Decrypte", type="primary"):
+            with st.spinner("Collecte YouTube en cours..."):
+                try:
+                    # Lancer le script YouTube Hugo Decrypte
+                    import subprocess
+                    result = subprocess.run([
+                        "python", "scripts/collect_hugo_youtube.py"
+                    ], capture_output=True, text=True, timeout=60)
+
+                    if result.returncode == 0:
+                        st.success("✅ Données Hugo Decrypte collectées!")
+                        st.info(f"📊 {result.stdout}")
+                    else:
+                        st.error(f"❌ Erreur: {result.stderr}")
+                except Exception as e:
+                    st.error(f"❌ Erreur de collecte: {e}")
+
+    with col3:
+        if st.button("🌐 GDELT Big Data", type="primary"):
+            with st.spinner("Collecte GDELT en cours..."):
+                try:
+                    # Lancer le script GDELT
+                    import subprocess
+                    result = subprocess.run([
+                        "python", "scripts/gdelt_gkg_pipeline.py",
+                        "--days", "1", "--output-dir", "data/raw"
+                    ], capture_output=True, text=True, timeout=120)
+
+                    if result.returncode == 0:
+                        st.success("✅ Données GDELT collectées!")
+                        st.info(f"📊 {result.stdout}")
+                    else:
+                        st.error(f"❌ Erreur: {result.stderr}")
+                except Exception as e:
+                    st.error(f"❌ Erreur de collecte: {e}")
+
+    st.divider()
+
+    # Section d'affichage des données collectées
+    st.subheader("📊 Données Collectées Récemment")
+
+    # Afficher les fichiers de données récents
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.write("**🕷️ Web Scraping (Yahoo+Franceinfo)**")
+        scraping_files = list(Path("data/raw/scraped").glob("*.json"))
+        if scraping_files:
+            latest_scraping = max(scraping_files, key=lambda x: x.stat().st_mtime)
+            st.info(f"📄 Dernier fichier: {latest_scraping.name}")
+            st.caption(f"🕒 Modifié: {datetime.fromtimestamp(latest_scraping.stat().st_mtime).strftime('%H:%M:%S')}")
+        else:
+            st.warning("Aucun fichier de scraping")
+
+    with col2:
+        st.write("**📺 YouTube Hugo Decrypte**")
+        youtube_files = list(Path("data/raw/external_apis").glob("hugo_*.json"))
+        if youtube_files:
+            latest_youtube = max(youtube_files, key=lambda x: x.stat().st_mtime)
+            st.info(f"📄 Dernier fichier: {latest_youtube.name}")
+            st.caption(f"🕒 Modifié: {datetime.fromtimestamp(latest_youtube.stat().st_mtime).strftime('%H:%M:%S')}")
+        else:
+            st.warning("Aucun fichier YouTube")
+
+    with col3:
+        st.write("**🌐 GDELT**")
+        gdelt_file = Path("data/raw/gdelt_data.json")
+        if gdelt_file.exists():
+            st.info(f"📄 Fichier: {gdelt_file.name}")
+            st.caption(f"🕒 Modifié: {datetime.fromtimestamp(gdelt_file.stat().st_mtime).strftime('%H:%M:%S')}")
+        else:
+            st.warning("Aucun fichier GDELT")
+
+    st.divider()
 
     # Champ de recherche
     query = st.text_input(
@@ -616,8 +735,12 @@ def show_realtime_analysis():
             emotions = analyze_collected_emotions(collected_texts, use_hf=use_hf)
 
             # Étape 3: Génération de réponse avec Ollama
+            progress_bar = st.progress(0)
             st.info("🤖 Génération de réponse IA...")
+
+            progress_bar.progress(50)
             ai_response = generate_ai_response(query, emotions, collected_texts)
+            progress_bar.progress(100)
 
             # Affichage des résultats
             st.success("✅ Analyse terminée !")
@@ -678,6 +801,20 @@ def show_realtime_analysis():
 def collect_realtime_data(query: str) -> list:
     """Collecte des données web en temps réel basées sur la requête"""
     texts = []
+    keywords = extract_keywords(query)
+
+    # Vérifier si la requête correspond aux données disponibles
+    available_domains = ['politique', 'international', 'france', 'gouvernement', 'sport', 'usa']
+    query_domain = detect_domain([query])
+
+    if query_domain not in available_domains:
+        # Si la requête ne correspond pas aux données disponibles, utiliser des données de test
+        st.warning(f"⚠️ Aucune donnée spécifique trouvée pour '{query}'. Utilisation de données de test.")
+        return [
+            f"Données de test pour l'analyse de: {query}",
+            "Ceci est une simulation basée sur les données disponibles",
+            "Les vraies données seraient collectées via web scraping en temps réel"
+        ]
 
     try:
         # Simulation de collecte web (à adapter avec de vrais sites)
@@ -694,6 +831,20 @@ def collect_realtime_data(query: str) -> list:
                             texts.append(item['title'])
                         if 'description' in item and any(kw.lower() in item['description'].lower() for kw in keywords):
                             texts.append(item['description'])
+
+        # Collecte depuis les données GDELT
+        gdelt_file = Path("data/raw/gdelt_data.json")
+        if gdelt_file.exists():
+            with open(gdelt_file, encoding='utf-8') as f:
+                gdelt_data = json.load(f)
+                if isinstance(gdelt_data, list):
+                    for item in gdelt_data:
+                        if 'titre' in item and any(kw.lower() in item['titre'].lower() for kw in keywords):
+                            texts.append(item['titre'])
+                        if 'texte' in item and any(kw.lower() in item['texte'].lower() for kw in keywords):
+                            texts.append(item['texte'])
+                        if 'resume' in item and any(kw.lower() in item['resume'].lower() for kw in keywords):
+                            texts.append(item['resume'])
 
         # Collecte depuis les données web scraping existantes
         scraping_files = list(Path("data/raw/web_scraping").glob("*.json"))
@@ -730,18 +881,25 @@ def collect_realtime_data(query: str) -> list:
 
 def extract_keywords(query: str) -> list:
     """Extrait les mots-clés importants de la requête"""
-    # Mots-clés politiques français
-    political_keywords = ['gouvernement', 'ministre', 'président', 'politique', 'france', 'français', 'élection', 'vote']
+    # Mots-clés par domaine
+    domain_keywords = {
+        'politique': ['gouvernement', 'ministre', 'président', 'politique', 'france', 'français', 'élection', 'vote'],
+        'sport': ['sport', 'football', 'basketball', 'baseball', 'soccer', 'tennis', 'golf', 'hockey', 'sportif'],
+        'usa': ['usa', 'america', 'americain', 'etats-unis', 'etats', 'unis', 'us', 'american'],
+        'international': ['onu', 'gaza', 'israël', 'palestine', 'guerre', 'conflit', 'ukraine', 'russie']
+    }
 
     # Extraire les mots significatifs de la requête
     words = query.lower().split()
-    keywords = [w for w in words if len(w) > 3 and w not in ['quelles', 'sont', 'les', 'des', 'suite', 'nouveau']]
+    keywords = [w for w in words if len(w) > 2 and w not in ['quelles', 'sont', 'les', 'des', 'suite', 'nouveau', 'dans', 'aux']]
 
-    # Ajouter des mots-clés politiques si pertinents
-    if any(pk in query.lower() for pk in political_keywords):
-        keywords.extend(['politique', 'gouvernement', 'france'])
+    # Ajouter des mots-clés par domaine si pertinents
+    query_lower = query.lower()
+    for _domain, domain_kw in domain_keywords.items():
+        if any(kw in query_lower for kw in domain_kw):
+            keywords.extend(domain_kw[:3])  # Ajouter max 3 mots-clés du domaine
 
-    return keywords[:5]  # Limiter à 5 mots-clés
+    return list(set(keywords))[:8]  # Limiter à 8 mots-clés uniques
 
 def detect_domain(texts: list) -> str:
     """Détecte automatiquement le domaine des textes"""
@@ -1071,15 +1229,16 @@ def show_documentation():
     st.subheader("🎯 Statut du projet")
 
     st.success("""
-    🎉 **PROJET OPÉRATIONNEL** - Prêt pour le jury !
+    **PROJET OPÉRATIONNEL**
 
-    ✅ Conformité au prompt original : 100%
-    ✅ 5 sources de données intégrées
-    ✅ 7 modules IA fonctionnels
-    ✅ Architecture modulaire complète
-    ✅ Conformité RGPD validée
-    ✅ Documentation SCRUM (18 User Stories)
+    • Conformité au prompt original : 100%
+    • 5 sources de données intégrées
+    • 7 modules IA fonctionnels
+    • Architecture modulaire complète
+    • Conformité RGPD validée
+    • Documentation SCRUM (18 User Stories)
     """)
 
 if __name__ == "__main__":
     main()
+

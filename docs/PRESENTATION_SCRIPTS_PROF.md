@@ -325,4 +325,4 @@ streamlit run app/frontend/streamlit_app.py
 
 ---
 
-*Présentation préparée pour la certification E1/E2/E3 - Janvier 2025*
+*Présentation préparée pour la certification E1/E2/E3 - Juin 2026*

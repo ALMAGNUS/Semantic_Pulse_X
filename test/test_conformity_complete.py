@@ -49,23 +49,53 @@ class ConformityTester:
         try:
             # Test 1: Vérifier les 6 sources de données distinctes
             sources_expected = [
-                "kaggle_tweets.csv",  # Source 1: Fichier plat
-                "simple_db.db",       # Source 2: Base de données simple
-                "youtube_data.json",  # Source 3: API externe
-                "gdelt_data.json",   # Source 4: Big Data
-                "web_scraping.json",  # Source 5: Web Scraping
-                "semantic_pulse.db"   # Source 6: BDD relationnelle MERISE
+                "kaggle_tweets/file_source_tweets.csv", # Source 1: 50% Kaggle fichier plat
+                "kaggle_tweets/db_source_tweets.csv",    # Source 2: 50% Kaggle base simple
+                "gdelt_data.json",                       # Source 3: GDELT Big Data
+                "youtube_data.json",                     # Source 4: APIs externes (YouTube)
+                "web_scraping.json",                     # Source 5: Web Scraping (Yahoo+Franceinfo)
+                "semantic_pulse.db"                      # Source 6: Base MERISE agrégée
             ]
 
-            sources_found = 0
+            # Compter les 5 sources distinctes + base MERISE
+            distinct_sources_found = 0
+            kaggle_file_found = False
+            kaggle_db_found = False
+            gdelt_found = False
+            apis_found = False
+            scraping_found = False
+
             for source in sources_expected:
                 if Path(f"data/raw/{source}").exists() or Path(source).exists():
-                    sources_found += 1
                     bloc_results["sources_details"][source] = "✅ Trouvé"
+
+                    # Compter les sources distinctes
+                    if "file_source_tweets.csv" in source:
+                        kaggle_file_found = True
+                    elif "db_source_tweets.csv" in source:
+                        kaggle_db_found = True
+                    elif source == "gdelt_data.json":
+                        gdelt_found = True
+                    elif source == "youtube_data.json":
+                        apis_found = True
+                    elif source == "web_scraping.json":
+                        scraping_found = True
                 else:
                     bloc_results["sources_details"][source] = "❌ Manquant"
 
-            bloc_results["sources_count"] = sources_found
+            # Compter les 5 sources distinctes
+            if kaggle_file_found:
+                distinct_sources_found += 1
+            if kaggle_db_found:
+                distinct_sources_found += 1
+            if gdelt_found:
+                distinct_sources_found += 1
+            if apis_found:
+                distinct_sources_found += 1
+            if scraping_found:
+                distinct_sources_found += 1
+
+            bloc_results["sources_count"] = distinct_sources_found
 
             # Test 2: Vérifier la conformité MERISE
             if Path("semantic_pulse.db").exists():
@@ -103,7 +133,7 @@ class ConformityTester:
 
             # Calcul du score Bloc 1
             score_components = [
-                bloc_results["sources_count"] / 6,  # 6 sources distinctes attendues
+                bloc_results["sources_count"] / 5,  # 5 sources distinctes attendues
                 bloc_results["merise_compliance"],
                 bloc_results["rgpd_compliance"],
                 bloc_results["metadata_complete"],
@@ -113,7 +143,7 @@ class ConformityTester:
             bloc_results["score"] = sum(score_components) / len(score_components) * 100
 
             logger.info(f"✅ Bloc 1 - Score: {bloc_results['score']:.1f}%")
-            logger.info(f"   Sources trouvées: {sources_found}/6")
+            logger.info(f"   Sources trouvées: {distinct_sources_found}/5 + Base MERISE")
             logger.info(f"   MERISE: {'✅' if bloc_results['merise_compliance'] else '❌'}")
             logger.info(f"   RGPD: {'✅' if bloc_results['rgpd_compliance'] else '❌'}")
 

@@ -85,7 +85,7 @@ Sources → Collecte → Normalisation → Agrégation → Base MERISE → Analy
 - **Fonctionnalités créatives** innovantes
 
 ### **2. Technologies Modernes**
-- **Web Scraping** avec Selenium (exigence professeur)
+- **Web Scraping** avec Selenium 
 - **Big Data** avec GDELT (source dédiée)
 - **IA française** pour analyse d'émotions
 - **DevOps** avec Docker et monitoring

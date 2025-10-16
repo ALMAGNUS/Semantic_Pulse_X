@@ -48,23 +48,23 @@ https://github.com/ALMAGNUS/Semantic_Pulse_X
 
 **Semantic Pulse X** collecte des données depuis **5 sources distinctes** qui sont ensuite agrégées dans une **6ème source (base MERISE)** :
 
-1. **📁 Fichier plat** : Dataset Kaggle Sentiment140
-2. **🗄️ Base de données externe** : SQLite avec schéma MERISE
-3. **🌐 API externe** : YouTube Data API v3 + NewsAPI
-4. **🕷️ Web Scraping** : Yahoo Actualités FR + France Info
-5. **📈 Système Big Data** : GDELT GKG (Global Knowledge Graph)
-6. **🔄 Base agrégée** : `semantic_pulse.db` (base finale MERISE)
+1. **📁 Fichier plat** : 50% Dataset Kaggle Sentiment140
+2. **🗄️ Base de données simple** : 50% Dataset Kaggle Sentiment140
+3. **📈 Système Big Data** : GDELT GKG (Global Knowledge Graph)
+4. **🌐 API externe** : YouTube Data API v3 + NewsAPI
+5. **🕷️ Web Scraping** : Yahoo Actualités FR + France Info
+6. **🔄 Base agrégée** : `semantic_pulse.db` (addition des 5 sources en base MERISE)
 
 ---
 
 ## 📁 **FICHIER**
 
-### **Source : Dataset Kaggle Sentiment140**
+### **Source : 50% Dataset Kaggle Sentiment140**
 - **Type** : Fichier CSV plat
-- **Volume** : 1,600,000 tweets
+- **Volume** : 3,333 tweets (50% du dataset Kaggle)
 - **Format** : Colonnes (sentiment, texte, id)
-- **Acquisition** : Téléchargement direct depuis Kaggle
-- **Utilisation** : Entraînement des modèles d'IA
+- **Acquisition** : Split du dataset Kaggle via `scripts/split_kaggle_dataset.py`
+- **Utilisation** : Source de données pour fichier plat
 
 ### **Métadonnées**
 - **Colonnes** : 3 colonnes principales
@@ -79,22 +79,20 @@ https://github.com/ALMAGNUS/Semantic_Pulse_X
 
 ## 🗄️ **BASE DE DONNÉES**
 
-### **Source : SQLite avec schéma MERISE**
-- **Type** : Base de données relationnelle
-- **Volume** : 535 contenus intégrés
-- **Tables** : sources, contenus, reactions, dim_pays, dim_domaine, dim_humeur
-- **Acquisition** : Génération automatique via ORM SQLAlchemy
-- **Utilisation** : Stockage structuré des données analysées
+### **Source : 50% Dataset Kaggle Sentiment140**
+- **Type** : Base de données simple SQLite
+- **Volume** : 3,333 tweets (50% du dataset Kaggle)
+- **Tables** : tweets_kaggle (table simple)
+- **Acquisition** : Split du dataset Kaggle via `scripts/split_kaggle_dataset.py`
+- **Utilisation** : Source de données pour base de données simple
 
 ### **Métadonnées**
-- **Tables principales** :
-  - `sources` : Informations sur les sources de données
-  - `contenus` : Contenu textuel et métadonnées
-  - `reactions` : Réactions et émotions associées
-- **Tables dimensionnelles** :
-  - `dim_pays` : Dimension géographique
-  - `dim_domaine` : Dimension thématique
-  - `dim_humeur` : Dimension émotionnelle
+- **Table principale** :
+  - `tweets_kaggle` : Tweets avec sentiment (50% du dataset Kaggle)
+- **Colonnes** :
+  - `sentiment` : 0 (négatif) ou 4 (positif)
+  - `texte` : Contenu du tweet
+  - `id` : Identifiant unique
 
 ---
 
@@ -190,6 +188,29 @@ https://github.com/ALMAGNUS/Semantic_Pulse_X
 - `emotion` : VARCHAR(50) - Émotion spécifique
 - `score` : FLOAT - Score de l'émotion
 - `created_at` : TIMESTAMP - Date de création
+
+---
+
+## 🔄 **BASE AGRÉGÉE MERISE**
+
+### **Source : Addition des 5 sources précédentes**
+- **Type** : Base de données relationnelle MERISE
+- **Volume** : 535 contenus intégrés (addition des 5 sources)
+- **Tables** : sources, contenus, reactions, dim_pays, dim_domaine, dim_humeur
+- **Acquisition** : Agrégation automatique via `scripts/aggregate_sources.py` + `scripts/load_aggregated_to_db.py`
+- **Utilisation** : Base finale MERISE avec schéma relationnel complet
+
+### **Métadonnées**
+- **Tables principales** :
+  - `sources` : Informations sur les sources de données (487 sources tracées)
+  - `contenus` : Contenu textuel et métadonnées (535 contenus)
+  - `reactions` : Réactions et émotions associées
+- **Tables dimensionnelles** :
+  - `dim_pays` : Dimension géographique
+  - `dim_domaine` : Dimension thématique
+  - `dim_humeur` : Dimension émotionnelle
+- **Cardinalités** : Relations 1:N entre sources et contenus
+- **Conformité** : RGPD (anonymisation, pseudonymisation, traçabilité)
 
 ---
 

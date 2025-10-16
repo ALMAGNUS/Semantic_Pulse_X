@@ -63,11 +63,12 @@ class ComponentTester:
         logger.info("📊 Test des 5 sources de données...")
 
         sources = {
-            'fichier_plat': Path("data/raw/kaggle_tweets/sentiment140.csv"),
-            'base_relationnelle': Path("semantic_pulse.db"),
-            'big_data': Path("data/processed/bigdata"),
-            'web_scraping': Path("data/raw/web_scraping"),
-            'api_rest': Path("data/raw/external_apis")
+            'kaggle_fichier_plat': Path("data/raw/kaggle_tweets/file_source_tweets.csv"),
+            'kaggle_base_simple': Path("data/raw/kaggle_tweets/db_source_tweets.csv"),
+            'gdelt_big_data': Path("data/raw/gdelt_data.json"),
+            'apis_externes': Path("data/raw/external_apis"),
+            'web_scraping': Path("data/raw/scraped"),
+            'base_merise': Path("semantic_pulse.db")
         }
 
         for source_name, source_path in sources.items():

@@ -20,22 +20,32 @@ class OllamaClient:
 
     def __init__(self, base_url: str = None):
         self.base_url = base_url or f"http://{settings.ollama_host}"
-        self.default_model = "mistral:7b"  # Modèle par défaut
+        # Modèle par défaut (léger, configurable via settings)
+        self.default_model = getattr(settings, "ollama_model", "llama3.2:3b")
         self.available_models = []
         self._check_connection()
 
     def _check_connection(self):
         """Vérifie la connexion avec Ollama"""
-        try:
-            response = requests.get(f"{self.base_url}/api/tags", timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                self.available_models = [model["name"] for model in data.get("models", [])]
-                logger.info(f"✅ Ollama connecté - Modèles disponibles: {self.available_models}")
-            else:
-                logger.warning("⚠️ Ollama non disponible, utilisation de fallback")
-        except Exception as e:
-            logger.warning(f"⚠️ Erreur connexion Ollama: {e}")
+        # Tentative avec un retry rapide
+        for attempt in range(2):
+            try:
+                response = requests.get(f"{self.base_url}/api/tags", timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    self.available_models = [model["name"] for model in data.get("models", [])]
+                    logger.info(f"✅ Ollama connecté - Modèles disponibles: {self.available_models}")
+                    # Warm-up rapide: petite requête pour charger le modèle en mémoire
+                    try:
+                        if self.available_models:
+                            _ = self.generate_text("OK ?", model=self.available_models[0], max_tokens=8, temperature=0.1)
+                    except Exception:
+                        pass
+                    break
+                else:
+                    logger.warning("⚠️ Ollama non disponible, utilisation de fallback")
+            except Exception as e:
+                logger.warning(f"⚠️ Erreur connexion Ollama (tentative {attempt+1}/2): {e}")
 
     def generate_text(self,
                      prompt: str,
@@ -73,7 +83,15 @@ class OllamaClient:
 
         except Exception as e:
             logger.error(f"❌ Erreur génération Ollama: {e}")
-            return self._fallback_generation(prompt)
+            # Retry une fois avec paramètres plus courts
+            try:
+                payload["options"]["num_predict"] = min(256, max_tokens)
+                response = requests.post(url, json=payload, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+                return data.get("response", "")
+            except Exception:
+                return self._fallback_generation(prompt)
 
     def generate_stream(self,
                        prompt: str,
@@ -114,7 +132,24 @@ class OllamaClient:
 
         except Exception as e:
             logger.error(f"❌ Erreur streaming Ollama: {e}")
-            yield self._fallback_generation(prompt)
+            # Tentative de retry streaming raccourci
+            try:
+                payload["options"]["num_predict"] = 128
+                response = requests.post(url, json=payload, stream=True, timeout=30)
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            data = json.loads(line.decode('utf-8'))
+                            if 'response' in data:
+                                yield data['response']
+                            if data.get('done', False):
+                                break
+                        except json.JSONDecodeError:
+                            continue
+                return
+            except Exception:
+                yield self._fallback_generation(prompt)
 
     def analyze_emotion_trends(self, emotion_data: list[dict[str, Any]]) -> str:
         """Analyse les tendances émotionnelles avec IA"""

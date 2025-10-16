@@ -46,11 +46,12 @@ Semantic_Pulse_X/
 - **Ollama** - IA locale gratuite
 
 ### Sources de données (RGPD-compliant)
-1. **Fichiers plats** - Datasets publics anonymisés (Kaggle, CSV)
-2. **Base relationnelle** - PostgreSQL/SQLite avec schéma MERISE complet
-3. **Big Data** - Parquet/Data Lake (GDELT 2.0, données volumétriques)
-4. **Scraping web** - Yahoo Actualités FR, Franceinfo (Selenium)
-5. **API REST** - YouTube Data API v3, NewsAPI
+1. **📁 Fichier plat** - 50% Dataset Kaggle Sentiment140 (CSV)
+2. **🗄️ Base de données simple** - 50% Dataset Kaggle Sentiment140 (SQLite)
+3. **📈 Système Big Data** - GDELT GKG (Global Knowledge Graph)
+4. **🌐 API externe** - YouTube Data API v3 + NewsAPI
+5. **🕷️ Web Scraping** - Yahoo Actualités FR + France Info
+6. **🔄 Base agrégée MERISE** - `semantic_pulse.db` (addition des 5 sources)
 
 ## 🧠 Intelligence Artificielle
 
@@ -58,7 +59,8 @@ Semantic_Pulse_X/
 - **Emotion AI** - Hugging Face + analyse lexicale française
 - **Clustering** - BERTopic pour regroupement thématique
 - **Prédiction** - Prophet/ARIMA/LSTM pour vagues émotionnelles
-- **Causalité** - Granger Causality + attention transformers
+- **LangChain** - Agent conversationnel avec Ollama (modèle léger llama3.2:3b)
+- **Ollama** - IA locale optimisée (warm-up, retries, fallback HuggingFace)
 
 ## 🚀 Démarrage rapide
 
@@ -80,7 +82,11 @@ pip install -r requirements.txt
 cp env.template .env
 # Éditer .env avec vos clés API
 
-# 5. Lancer l'application
+# 5. Installer et configurer Ollama (IA locale)
+# Télécharger depuis https://ollama.ai/download
+ollama pull llama3.2:3b  # Modèle léger optimisé
+
+# 6. Lancer l'application
 python scripts/start_semantic_pulse.bat  # Windows
 # ou
 streamlit run app/frontend/streamlit_app.py --server.port 8501

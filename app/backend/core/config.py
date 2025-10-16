@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 
     # Ollama
     ollama_host: str = "localhost:11434"
+    ollama_model: str = "llama3.2:3b"
 
     # Monitoring
     prometheus_port: int = 9090

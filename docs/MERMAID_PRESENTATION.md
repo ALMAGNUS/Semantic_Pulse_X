@@ -72,15 +72,15 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    A[Kaggle CSV<br/>1000 tweets] --> E[Pipeline ETL]
-    B[YouTube API<br/>180 vidéos] --> E
-    C[Web Scraping<br/>Yahoo + Franceinfo] --> E
-    D[GDELT GKG<br/>Big Data] --> E
-    F[NewsAPI<br/>Articles] --> E
+    A[Kaggle 50%<br/>Fichier plat CSV<br/>3,333 tweets] --> E[Pipeline ETL]
+    B[Kaggle 50%<br/>Base simple SQLite<br/>3,333 tweets] --> E
+    C[GDELT GKG<br/>Big Data<br/>1,283 événements] --> E
+    D[YouTube + NewsAPI<br/>APIs externes<br/>180 vidéos + articles] --> E
+    F[Yahoo + Franceinfo<br/>Web Scraping<br/>Articles temps réel] --> E
     
     E --> G[aggregate_sources.py<br/>Déduplication + Normalisation]
     G --> H[load_aggregated_to_db.py<br/>Chargement MERISE]
-    H --> I[semantic_pulse.db<br/>535 contenus, 487 sources]
+    H --> I[semantic_pulse.db<br/>535 contenus, 487 sources<br/>Base MERISE finale]
     
     style A fill:#e1f5fe
     style B fill:#e8f5e8
@@ -104,8 +104,8 @@ graph TB
     end
     
     subgraph "COUCHE DONNÉES"
-        D[semantic_pulse.db<br/>Base MERISE]
-        E[5 Sources Brutes<br/>CSV/JSON/API/DB]
+        D[semantic_pulse.db<br/>Base MERISE finale]
+        E[5 Sources Brutes<br/>Kaggle 50/50 + GDELT + APIs + Scraping]
     end
     
     A --> B
@@ -123,7 +123,7 @@ graph TB
 
 ```mermaid
 graph LR
-    A[Données Brutes<br/>5 Sources] --> B[Anonymisation<br/>PII Removal]
+    A[5 Sources Brutes<br/>Kaggle 50/50 + GDELT + APIs + Scraping] --> B[Anonymisation<br/>PII Removal]
     B --> C[Pseudonymisation<br/>Hash SHA-256]
     C --> D[Base MERISE<br/>RGPD Compliant]
     
@@ -144,10 +144,15 @@ graph LR
 - **Notion** ou **Obsidian**
 
 ### **Points Clés à Mentionner :**
-1. **6 Sources distinctes** → Base MERISE unifiée
-2. **Pipeline ETL complexe** avec déduplication
+1. **5 Sources distinctes** → Base MERISE unifiée
+   - **Source 1 :** 50% Kaggle → Fichier plat CSV
+   - **Source 2 :** 50% Kaggle → Base simple SQLite
+   - **Source 3 :** GDELT GKG → Système Big Data
+   - **Source 4 :** YouTube + NewsAPI → APIs externes
+   - **Source 5 :** Yahoo + Franceinfo → Web Scraping
+2. **Pipeline ETL complexe** avec déduplication des 5 sources
 3. **Architecture 3 couches** professionnelle
 4. **Conformité RGPD** complète
-5. **535 contenus** intégrés avec succès
+5. **535 contenus** intégrés avec succès dans la base MERISE finale
 
 **Ces diagrammes montrent la VRAIE complexité du projet !** 🚀✅

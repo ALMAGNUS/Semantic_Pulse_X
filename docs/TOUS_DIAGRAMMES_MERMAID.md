@@ -1,6 +1,6 @@
-# 📊 Code Mermaid pour Schéma MERISE RÉEL - Semantic Pulse X
+# 🎯 TOUS LES DIAGRAMMES MERMAID - Semantic Pulse X
 
-## 🎯 Diagramme MCD (Modèle Conceptuel de Données) - STRUCTURE RÉELLE
+## 1️⃣ DIAGRAMME MCD (Modèle Conceptuel de Données)
 
 ```mermaid
 erDiagram
@@ -68,7 +68,7 @@ erDiagram
     CONTENUS ||--o{ REACTIONS : "génère"
 ```
 
-## 🔗 Diagramme des Sources de Données RÉELLES
+## 2️⃣ DIAGRAMME DES 5 SOURCES → 6ème BDD
 
 ```mermaid
 graph TD
@@ -97,7 +97,7 @@ graph TD
     style I fill:#e0f2f1
 ```
 
-## 📊 Diagramme Architecture MLP RÉELLE
+## 3️⃣ ARCHITECTURE 3 COUCHES
 
 ```mermaid
 graph TB
@@ -151,7 +151,7 @@ graph TB
     style F fill:#fce4ec
 ```
 
-## 🔄 Diagramme Flux ETL RÉEL
+## 4️⃣ PIPELINE ETL COMPLET
 
 ```mermaid
 flowchart TD
@@ -210,7 +210,7 @@ flowchart TD
     style D2 fill:#e3f2fd
 ```
 
-## 🛡️ Diagramme Conformité RGPD RÉELLE
+## 5️⃣ CONFORMITÉ RGPD
 
 ```mermaid
 graph LR
@@ -263,7 +263,7 @@ graph LR
     style M fill:#fff3e0
 ```
 
-## 📈 Diagramme Monitoring RÉEL
+## 6️⃣ MONITORING & MÉTRIQUES
 
 ```mermaid
 graph TB
@@ -304,36 +304,77 @@ graph TB
     style H fill:#ffebee
 ```
 
+## 7️⃣ SURVEILLANCE DÉRIVE MODÈLES
+
+```mermaid
+graph TD
+    subgraph "DONNÉES HISTORIQUES"
+        A[Dataset de référence<br/>Kaggle Sentiment140]
+        B[Modèles entraînés<br/>HuggingFace]
+        C[Métriques de base<br/>PSI/KS Test]
+    end
+    
+    subgraph "DÉRIVE DÉTECTÉE"
+        D[Data Drift<br/>Distribution changée]
+        E[Prediction Drift<br/>Prédictions décalées]
+        F[Performance Drift<br/>Accuracy dégradée]
+    end
+    
+    subgraph "ALERTES AUTOMATIQUES"
+        G[Email/Slack<br/>Seuil dépassé]
+        H[Dashboard Grafana<br/>Métriques temps réel]
+        I[Logs Prometheus<br/>Historique dérive]
+    end
+    
+    subgraph "ACTIONS CORRECTIVES"
+        J[Re-entraînement<br/>Modèle mis à jour]
+        K[Validation croisée<br/>Tests qualité]
+        L[Déploiement<br/>Nouvelle version]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
+    
+    D --> G
+    E --> H
+    F --> I
+    
+    G --> J
+    H --> K
+    I --> L
+    
+    style D fill:#ffebee
+    style E fill:#ffebee
+    style F fill:#ffebee
+    style J fill:#e8f5e8
+    style K fill:#e8f5e8
+    style L fill:#e8f5e8
+```
+
 ---
 
-## 🎯 Instructions d'utilisation
+## 🎯 **INSTRUCTIONS POUR VÉRIFICATION**
 
-### **Pour utiliser ces diagrammes :**
+### **Étapes de vérification :**
 
-1. **Copiez le code Mermaid** de chaque section
-2. **Collez-le dans un éditeur Mermaid** comme :
-   - [Mermaid Live Editor](https://mermaid.live/)
-   - **GitHub** (dans un fichier .md)
-   - **VS Code** avec extension Mermaid
-   - **Notion** ou **Obsidian**
+1. **Copiez chaque diagramme** (code entre ```mermaid et ```)
+2. **Allez sur** [Mermaid Live Editor](https://mermaid.live/)
+3. **Collez le code** dans l'éditeur
+4. **Vérifiez le rendu** :
+   - ✅ Cardinalités correctes
+   - ✅ Couleurs cohérentes  
+   - ✅ Labels lisibles
+   - ✅ Relations logiques
+   - ✅ Pas d'erreurs de syntaxe
 
-### **Exemple d'utilisation :**
-```markdown
-```mermaid
-erDiagram
-    DIM_PAYS {
-        integer id PK
-        varchar nom
-        varchar code_iso
-    }
-    CONTENUS {
-        integer id PK
-        integer pays_id FK
-        text titre
-    }
-    DIM_PAYS ||--o{ CONTENUS : "localise"
-```
-```
+### **Points de contrôle :**
 
-**Ces diagrammes montrent la VRAIE structure MERISE avec les cardinalités exactes basées sur semantic_pulse.db !** 🎯✅
+- **MCD** : 6 tables avec PK/FK et cardinalités exactes
+- **Sources** : 5 sources distinctes → base MERISE
+- **Architecture** : 3 couches bien séparées
+- **ETL** : 4 étapes (Extract/Clean/Transform/Load)
+- **RGPD** : 4 niveaux de protection
+- **Monitoring** : Métriques + Alertes + Actions
 
+**Tous les diagrammes sont basés sur la structure RÉELLE de semantic_pulse.db !** 🎯✅
