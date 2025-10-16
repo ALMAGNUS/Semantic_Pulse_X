@@ -20,9 +20,11 @@ class OllamaClient:
 
     def __init__(self, base_url: str = None):
         self.base_url = base_url or f"http://{settings.ollama_host}"
-        # Modèle par défaut (léger, configurable via settings)
+        # Modèle optimisé pour le français et les émotions
         self.default_model = getattr(settings, "ollama_model", "llama3.2:3b")
         self.available_models = []
+        self.timeout = 30  # Timeout réduit
+        self.max_retries = 2  # Retry limité
         self._check_connection()
 
     def _check_connection(self):
@@ -152,23 +154,16 @@ class OllamaClient:
                 yield self._fallback_generation(prompt)
 
     def analyze_emotion_trends(self, emotion_data: list[dict[str, Any]]) -> str:
-        """Analyse les tendances émotionnelles avec IA"""
+        """Analyse les tendances émotionnelles optimisée pour le français"""
         prompt = f"""
-        Analysez les tendances émotionnelles suivantes et fournissez un résumé professionnel :
+Tu es un expert en analyse émotionnelle française. 
+Analyse les tendances émotionnelles suivantes et fournis des insights précis en français.
 
-        Données émotionnelles :
-        {json.dumps(emotion_data, indent=2, ensure_ascii=False)}
+Données émotionnelles:
+{json.dumps(emotion_data, ensure_ascii=False, indent=2)}
 
-        Fournissez :
-        1. Les émotions dominantes et leur évolution
-        2. Les tendances temporelles observées
-        3. Les insights clés pour les analystes
-        4. Les recommandations stratégiques
-        5. Les alertes à surveiller
-
-        Réponse en français, format professionnel.
-        """
-
+Fournis une analyse concise des tendances observées en français (max 150 mots).
+"""
         return self.generate_text(prompt, temperature=0.3)
 
     def generate_insights(self, data: dict[str, Any]) -> str:

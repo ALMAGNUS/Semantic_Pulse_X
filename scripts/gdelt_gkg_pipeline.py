@@ -304,7 +304,8 @@ def gdelt_gkg_sentiment_pipeline(days: int = 7, output_dir: str = "data/processe
     all_dataframes = []
 
     # Générer les dates à traiter
-    end_date = datetime.now(UTC)
+    # Utiliser des dates passées pour éviter les erreurs 404
+    end_date = datetime.now(UTC) - timedelta(days=1)  # Hier au minimum
     dates_to_process = []
 
     for i in range(days):
@@ -387,12 +388,13 @@ def main() -> int:
     result = gdelt_gkg_sentiment_pipeline(days=args.days, output_dir=args.output_dir)
 
     if result["success"]:
-        print("✅ Pipeline GDELT GKG terminé avec succès!")
-        print(f"📊 {result['total_records']} enregistrements traités")
-        print(f"📈 Distribution sentiment: {result['sentiment_distribution']}")
+        print("SUCCESS: Pipeline GDELT GKG termine avec succes!")
+        print(f"RECORDS: {result['total_records']} enregistrements traites")
+        print(f"DISTRIBUTION: {result['sentiment_distribution']}")
         return 0
     else:
-        print(f"❌ Pipeline échoué: {result.get('error', 'Erreur inconnue')}")
+        error_msg = result.get('error', 'Erreur inconnue')
+        print(f"ERROR: Pipeline echoue: {error_msg}")
         return 1
 
 

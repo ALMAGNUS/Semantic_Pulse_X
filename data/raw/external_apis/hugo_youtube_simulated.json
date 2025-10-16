@@ -1,0 +1,18 @@
+{
+  "videos": [
+    {
+      "title": "Analyse politique française - Hugo Décrypte",
+      "description": "Analyse des dernières actualités politiques françaises",
+      "published_at": "2024-10-16T10:00:00Z",
+      "view_count": 150000,
+      "like_count": 8500
+    },
+    {
+      "title": "Économie française : les défis à venir",
+      "description": "Discussion sur les enjeux économiques actuels",
+      "published_at": "2024-10-15T14:30:00Z",
+      "view_count": 120000,
+      "like_count": 7200
+    }
+  ]
+}

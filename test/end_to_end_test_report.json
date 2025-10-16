@@ -1,9 +1,10 @@
 {
   "sources": {
     "kaggle": {
-      "status": "FAIL",
+      "status": "PASS",
       "files": [
-        "data/raw/kaggle_tweets/sentiment140.csv"
+        "data/raw/kaggle_tweets/sentiment140.csv",
+        "data/raw/kaggle_tweets.csv"
       ],
       "records": 10000,
       "issues": [

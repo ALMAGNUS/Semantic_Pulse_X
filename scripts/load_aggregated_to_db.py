@@ -54,7 +54,7 @@ def load_aggregated_data(input_file: Path) -> int:
         with input_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
 
-        print(f"📊 Chargement de {len(data)} enregistrements")
+        print(f"LOADING: Chargement de {len(data)} enregistrements")
 
         # Statistiques par source
         source_stats = {}
@@ -83,7 +83,7 @@ def load_aggregated_data(input_file: Path) -> int:
             ).first()
 
             if existing:
-                print(f"⚠️ Enregistrement existant ignoré: {record.get('titre', '')[:50]}...")
+                print(f"WARNING: Enregistrement existant ignoré: {record.get('titre', '')[:50]}...")
                 continue
 
             # Créer le contenu
@@ -115,27 +115,27 @@ def load_aggregated_data(input_file: Path) -> int:
         # Commit des changements
         session.commit()
 
-        print(f"✅ {len(data)} enregistrements chargés avec succès")
+        print(f"SUCCESS: {len(data)} enregistrements chargés avec succès")
 
         # Afficher les statistiques
-        print("\n📈 Statistiques par source:")
+        print("\nSTATS par source:")
         for source, count in sorted(source_stats.items()):
             print(f"   • {source}: {count} enregistrements")
 
-        print("\n😊 Distribution des sentiments:")
+        print("\nDISTRIBUTION des sentiments:")
         for sentiment, count in sorted(sentiment_stats.items()):
             percentage = (count / len(data)) * 100
             print(f"   • {sentiment}: {count} ({percentage:.1f}%)")
 
         # Vérifier les données en base
         total_contenus = session.query(Contenu).count()
-        print(f"\n🗄️ Total en base: {total_contenus} contenus")
+        print(f"\nDATABASE: Total en base: {total_contenus} contenus")
 
         return 0
 
     except Exception as e:
         session.rollback()
-        print(f"❌ Erreur lors du chargement: {e}")
+        print(f"ERROR: Erreur lors du chargement: {e}")
         return 1
     finally:
         session.close()
@@ -149,7 +149,7 @@ def main() -> int:
 
     input_path = Path(args.input)
     if not input_path.exists():
-        print(f"❌ Fichier introuvable: {input_path}")
+        print(f"ERROR: Fichier introuvable: {input_path}")
         return 1
 
     return load_aggregated_data(input_path)

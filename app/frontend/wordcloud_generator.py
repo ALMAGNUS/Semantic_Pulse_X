@@ -5,6 +5,7 @@ Générateur de nuages de mots pour Semantic Pulse X
 import json
 import re
 from collections import Counter
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -116,15 +117,143 @@ def generate_wordcloud_from_data():
     else:
         return None, None
 
+def generate_wordcloud_for_event(event_description: str):
+    """Génère un nuage de mots spécifique pour un événement"""
+    
+    st.subheader(f"🎯 Nuage de Mots pour: {event_description}")
+    
+    # Debug
+    st.info(f"🔍 Recherche de textes pour: '{event_description}'")
+    
+    # Rechercher des données liées à cet événement
+    related_texts = search_texts_for_event(event_description)
+    
+    st.info(f"📊 {len(related_texts)} textes trouvés")
+    
+    if related_texts:
+        # Générer le nuage spécifique
+        wordcloud_fig = create_wordcloud_from_texts(related_texts, title=f"Mots-clés: {event_description}")
+        if wordcloud_fig:
+            st.pyplot(wordcloud_fig)
+        else:
+            st.error("❌ Erreur lors de la génération du nuage de mots")
+        
+        # Afficher les textes trouvés
+        with st.expander(f"📄 Textes trouvés pour '{event_description}' ({len(related_texts)} textes)"):
+            for i, text in enumerate(related_texts[:10], 1):  # Limiter à 10
+                st.write(f"**{i}.** {text[:200]}...")
+    else:
+        st.warning(f"⚠️ Aucun texte trouvé pour l'événement '{event_description}'")
+        st.write("**Conseil :** Lancez une collecte de données pour cet événement")
+        
+        # Fallback : utiliser le nuage général
+        st.info("🔄 Génération du nuage de mots général...")
+        wordcloud_fig = get_cached_wordcloud()
+        if wordcloud_fig:
+            st.pyplot(wordcloud_fig)
+
+def search_texts_for_event(event_description: str):
+    """Recherche des textes liés à un événement spécifique"""
+    
+    # Mots-clés de l'événement (plus intelligents)
+    keywords = event_description.lower().split()
+    
+    # Ajouter des mots-clés politiques français
+    political_keywords = [
+        'gouvernement', 'ministre', 'président', 'assemblée', 'sénat',
+        'réforme', 'loi', 'budget', 'retraite', 'chômage', 'économie',
+        'écologie', 'santé', 'éducation', 'sécurité', 'immigration',
+        'france', 'français', 'française', 'politique'
+    ]
+    
+    # Combiner les mots-clés
+    all_keywords = keywords + [kw for kw in political_keywords if any(kw in event_description.lower() for kw in political_keywords)]
+    
+    all_texts = collect_all_texts()
+    related_texts = []
+    
+    if not all_texts:
+        # Si pas de textes, utiliser les données de session temps réel
+        if 'realtime_analysis' in st.session_state:
+            realtime_data = st.session_state['realtime_analysis']
+            return realtime_data.get('texts', [])
+        return []
+    
+    for text in all_texts:
+        text_lower = text.lower()
+        # Vérifier si au moins un mot-clé est présent
+        if any(keyword in text_lower for keyword in all_keywords):
+            related_texts.append(text)
+    
+    # Si pas de textes trouvés, retourner tous les textes (fallback)
+    if not related_texts and all_texts:
+        related_texts = all_texts[:10]  # Limiter à 10 pour éviter les problèmes
+    
+    return related_texts
+
+def create_wordcloud_from_texts(texts, title="Nuage de Mots"):
+    """Crée un nuage de mots à partir d'une liste de textes"""
+    
+    if not texts:
+        return None
+    
+    # Combiner tous les textes
+    combined_text = " ".join(texts)
+    
+    # Générer le nuage de mots
+    wordcloud = WordCloud(
+        width=800, height=400,
+        background_color='white',
+        max_words=100,
+        colormap='viridis'
+    ).generate(combined_text)
+    
+    # Créer la figure
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.axis('off')
+    ax.set_title(title, fontsize=16, pad=20)
+    
+    return fig
+
 def show_wordcloud_dashboard():
     """Affiche le dashboard des nuages de mots"""
 
     st.header("☁️ Nuages de Mots")
     st.subheader("Analyse sémantique des données collectées")
+    
+    # Vérifier s'il y a une prédiction récente à analyser
+    if 'generate_wordcloud_for' in st.session_state:
+        st.info(f"🎯 **Analyse programmée pour :** {st.session_state['generate_wordcloud_for']}")
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write("**Recherche de données liées à cet événement...**")
+        with col2:
+            if st.button("🚀 Générer Maintenant", key="generate_now"):
+                # Générer le nuage pour cet événement spécifique
+                generate_wordcloud_for_event(st.session_state['generate_wordcloud_for'])
+                del st.session_state['generate_wordcloud_for']  # Nettoyer
+                st.rerun()
+        
+        st.divider()
 
-    # Générer le nuage de mots
+    # Bouton de mise à jour
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔄 Mettre à jour le nuage de mots", type="primary"):
+            # Invalider le cache
+            st.cache_data.clear()
+            st.success("✅ Cache vidé ! Génération du nouveau nuage...")
+            st.rerun()
+
+    # Générer le nuage de mots avec cache intelligent
+    @st.cache_data(ttl=300)  # Cache de 5 minutes
+    def get_cached_wordcloud():
+        return generate_wordcloud_from_data()
+    
     with st.spinner("Génération du nuage de mots..."):
-        wordcloud, word_counts = generate_wordcloud_from_data()
+        wordcloud, word_counts = get_cached_wordcloud()
 
     if wordcloud and word_counts:
         # Afficher le nuage de mots
@@ -169,6 +298,9 @@ def show_wordcloud_dashboard():
         with col3:
             total_words = sum(word_counts.values())
             st.metric("Total de mots", total_words)
+        
+        # Indicateur de dernière mise à jour
+        st.info(f"🕒 Dernière mise à jour: {datetime.now().strftime('%H:%M:%S')}")
 
         # Analyse par source
         st.subheader("📊 Analyse par source de données")
